@@ -39,3 +39,6 @@ Temporary Items
 
 # Build
 /build
+Debug/
+Minecraft.build/
+Minecraft.xcodeproj/
