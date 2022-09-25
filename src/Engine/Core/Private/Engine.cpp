@@ -4,16 +4,21 @@
 
 #include "Engine/Common/Exception.hpp"
 #include "Engine/Core/ImmutableConfig.hpp"
+#include "Engine/Render/Metal/Renderer.hpp"
+#include "Engine/Render/Metal/Window.hpp"
 #include "Engine/Utils/Logger.hpp"
 
-SHV::Engine::Engine(const ImmutableConfig& aConfig) : config(aConfig) {}
+using namespace SHV;
 
-int SHV::Engine::Run() noexcept {
+Engine::Engine(const ImmutableConfig& aConfig)
+    : config(aConfig), renderer(nullptr), window(nullptr) {}
+
+int Engine::Run() noexcept {
     try {
-        Init();
+        SetUp();
     } catch (SHV::Exception& e) {
         SHV::LogE(SHV::eTag::kBase)
-            << "Critical error occurred during engine run! " << e.what();
+            << "Critical error occurred during engine SetUp! " << e.what();
         return EXIT_FAILURE;
     }
 
@@ -26,40 +31,49 @@ int SHV::Engine::Run() noexcept {
         }
     }
 
+    try {
+        TearDown();
+    } catch (SHV::Exception& e) {
+        SHV::LogE(SHV::eTag::kBase)
+            << "Critical error occurred during engine TearDown! " << e.what();
+        return EXIT_FAILURE;
+    }
+
     return EXIT_SUCCESS;
 }
 
-void SHV::Engine::Init() {
-    // The window we'll be rendering to
-    SDL_Window* window = NULL;
-
-    // The surface contained by the window
-    SDL_Surface* screenSurface = NULL;
-
+void Engine::SetUp() {
     // Initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        throw SHV::Exception("SDL could not initialize! SDL_Error: %s\n",
-                             SDL_GetError());
-    } else {
-        // Create window
-        window = SDL_CreateWindow("SDL Tutorial", SDL_WINDOWPOS_UNDEFINED,
-                                  SDL_WINDOWPOS_UNDEFINED, config.width,
-                                  config.height, SDL_WINDOW_SHOWN);
-        if (window == NULL) {
-            printf("Window could not be created! SDL_Error: %s\n",
-                   SDL_GetError());
-        } else {
-            // Get window surface
-            screenSurface = SDL_GetWindowSurface(window);
-
-            // Fill the surface white
-            SDL_FillRect(screenSurface, NULL,
-                         SDL_MapRGB(screenSurface->format, 0xFF, 0xFF, 0xFF));
-
-            // Update the surface
-            SDL_UpdateWindowSurface(window);
-        }
+        throw Exception("SDL could not initialize! SDL_Error: %s\n",
+                        SDL_GetError());
     }
+
+    // Create window
+
+    const WindowConfig windowConfig = {config.width, config.height};
+    window = std::make_unique<Metal::Window>(windowConfig);
+    window->SetUp();
+
+    renderer = std::make_unique<Metal::Renderer>(*window.get());
+    renderer->SetUp();
+
+    // Get window surface
+    screenSurface = SDL_GetWindowSurface(&window->GetWindow());
+
+    // Fill the surface white
+    SDL_FillRect(screenSurface, nullptr,
+                 SDL_MapRGB(screenSurface->format, 0x00, 0xFF, 0xFF));
+
+    // Update the surface
+    SDL_UpdateWindowSurface(&window->GetWindow());
 }
 
-SHV::Engine::~Engine() = default;
+void Engine::TearDown() {
+    renderer->TearDown();
+    window->TearDown();
+
+    SDL_Quit();
+}
+
+Engine::~Engine() = default;

@@ -1,22 +1,34 @@
 #pragma once
 
-#include <stdio.h>
+#include <memory>
 
+struct SDL_Window;
+struct SDL_Surface;
 
-namespace SHV
-{
-    struct ImmutableConfig;
+namespace SHV {
+struct ImmutableConfig;
 
-    class Engine {
-        public:
-        Engine(const ImmutableConfig& config);
-        ~Engine();
-        
-        int Run() noexcept;
-    private:
-        
-        void Init();
-        
-        const ImmutableConfig& config;
-    };
+namespace Metal {
+class Renderer;
+class Window;
 }
+
+class Engine {
+   public:
+    Engine(const ImmutableConfig& config);
+    ~Engine();
+
+    int Run() noexcept;
+
+   private:
+    void SetUp();
+    void TearDown();
+
+    const ImmutableConfig& config;
+
+    SDL_Surface* screenSurface = nullptr;
+
+    std::unique_ptr<Metal::Renderer> renderer;
+    std::unique_ptr<Metal::Window> window;
+};
+}  // namespace SHV
