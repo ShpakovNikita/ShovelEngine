@@ -42,3 +42,9 @@ Temporary Items
 Debug/
 Minecraft.build/
 Minecraft.xcodeproj/
+
+# Idea
+.idea
+
+# Clion
+.cmake
