@@ -2,16 +2,24 @@
 
 #include <SDL.h>
 
+#include <chrono>
+#include <thread>
+
 #include "Engine/Common/Exception.hpp"
 #include "Engine/Core/ImmutableConfig.hpp"
+#include "Engine/Core/MutableConfig.hpp"
 #include "Engine/Render/Metal/Renderer.hpp"
 #include "Engine/Render/Metal/Window.hpp"
 #include "Engine/Utils/Logger.hpp"
 
 using namespace SHV;
 
-Engine::Engine(const ImmutableConfig& aConfig)
-    : config(aConfig), renderer(nullptr), window(nullptr) {}
+Engine::Engine(const ImmutableConfig& aImmutableConfig,
+               MutableConfig& aMutableConfig)
+    : immutableConfig(aImmutableConfig),
+      mutableConfig(aMutableConfig),
+      renderer(nullptr),
+      window(nullptr) {}
 
 int Engine::Run() noexcept {
     try {
@@ -22,15 +30,8 @@ int Engine::Run() noexcept {
         return EXIT_FAILURE;
     }
 
-    // Hack to get window to stay up
-    SDL_Event e;
-    bool quit = false;
-    while (quit == false) {
-        while (SDL_PollEvent(&e)) {
-            renderer->Draw();
-            if (e.type == SDL_QUIT) quit = true;
-        }
-    }
+    // Executes until some command to close engine
+    MainLoop();
 
     try {
         TearDown();
@@ -52,7 +53,8 @@ void Engine::SetUp() {
 
     // Create window
 
-    const WindowConfig windowConfig = {config.width, config.height};
+    const WindowConfig windowConfig = {immutableConfig.width,
+                                       immutableConfig.height};
     window = std::make_unique<Metal::Window>(windowConfig);
     window->SetUp();
 
@@ -76,5 +78,48 @@ void Engine::TearDown() {
 
     SDL_Quit();
 }
+
+void Engine::MainLoop() {
+    isRunning = true;
+    const float minSecPerFrame = 1.0f / mutableConfig.fpsLimit;
+
+    auto previousTime = std::chrono::high_resolution_clock::now();
+    std::this_thread::sleep_for(std::chrono::microseconds(
+        static_cast<size_t>(minSecPerFrame * 1000.0f)));
+
+    while (isRunning) {
+        auto currentTime = std::chrono::high_resolution_clock::now();
+        auto elapsedTime = currentTime - previousTime;
+        float deltaTime =
+            std::chrono::duration_cast<std::chrono::nanoseconds>(elapsedTime)
+                .count() /
+            (1000.0f * 1000.0f * 1000.0f);
+
+        Tick(deltaTime);
+
+        std::chrono::milliseconds timeToSleep(std::max(
+            0, static_cast<int>((minSecPerFrame - deltaTime) * 1000.0f)));
+        std::this_thread::sleep_for(timeToSleep);
+
+        previousTime = currentTime;
+    }
+}
+
+void Engine::Tick(float deltaTime) {
+    PollEvents(deltaTime);
+    UpdateSystems(deltaTime);
+    RenderLoop(deltaTime);
+}
+
+void Engine::PollEvents(float /* deltaTime */) {
+    SDL_Event e;
+    while (SDL_PollEvent(&e)) {
+        if (e.type == SDL_QUIT) isRunning = false;
+    }
+}
+
+void Engine::UpdateSystems(float /* deltaTime */) {}
+
+void Engine::RenderLoop(float /* deltaTime */) { renderer->Draw(); }
 
 Engine::~Engine() = default;

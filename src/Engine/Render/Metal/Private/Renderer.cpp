@@ -37,9 +37,11 @@ void SHV::Metal::Renderer::SetUp() {
 }
 
 void SHV::Metal::Renderer::TearDown() {
+    AssertD(renderPipeline != nullptr);
     renderPipeline->TearDown();
     renderPipeline = nullptr;
 
+    AssertD(device != nullptr);
     device->TearDown();
     device = nullptr;
 }

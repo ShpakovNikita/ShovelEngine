@@ -7,15 +7,17 @@ struct SDL_Surface;
 
 namespace SHV {
 struct ImmutableConfig;
+struct MutableConfig;
 
 namespace Metal {
 class Renderer;
 class Window;
-}
+}  // namespace Metal
 
 class Engine {
    public:
-    Engine(const ImmutableConfig& config);
+    Engine(const ImmutableConfig& immutableConfig,
+           MutableConfig& mutableConfig);
     ~Engine();
 
     int Run() noexcept;
@@ -24,11 +26,21 @@ class Engine {
     void SetUp();
     void TearDown();
 
-    const ImmutableConfig& config;
+    void MainLoop();
+    void Tick(float deltaTime);
+
+    void PollEvents(float deltaTime);
+    void UpdateSystems(float deltaTime);
+    void RenderLoop(float deltaTime);
+
+    const ImmutableConfig& immutableConfig;
+    MutableConfig& mutableConfig;
 
     SDL_Surface* screenSurface = nullptr;
 
     std::unique_ptr<Metal::Renderer> renderer;
     std::unique_ptr<Metal::Window> window;
+
+    bool isRunning = false;
 };
 }  // namespace SHV
