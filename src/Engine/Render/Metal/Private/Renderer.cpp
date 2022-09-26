@@ -4,16 +4,44 @@
 
 #include "Engine/Render/Metal/Renderer.hpp"
 
-#include "Engine/Render/Metal/MetalBridge.hpp"
+#include <simd/simd.h>
+
+#include <array>
+
+#include "Engine/Render/Metal/LogicalDevice.hpp"
+#include "Engine/Render/Metal/RenderPipeline.hpp"
 #include "Engine/Render/Metal/Window.hpp"
+#include "Engine/Utils/Assert.hpp"
 #include "Metal/Metal.hpp"
 
-SHV::Metal::Renderer::Renderer(Window& metalWindow) : window(metalWindow){};
+SHV::Metal::Renderer::Renderer(Window& metalWindow)
+    : device(nullptr), window(metalWindow){};
+SHV::Metal::Renderer::~Renderer() { AssertD(device == nullptr); }
 
 void SHV::Metal::Renderer::SetUp() {
-    device = ::MTL::CreateSystemDefaultDevice();
+    device = std::make_unique<SHV::Metal::LogicalDevice>();
+    device->SetUp();
 
-    AssignMetalDevice(window.GetCAMetalLayer(), device);
+    device->AssignDeviceToWindow(window);
+
+    const std::array<simd::float3, 9> vertexData = {0.0, 1.0, 0.0,  -1.0, -1.0,
+                                                    0.0, 1.0, -1.0, 0.0};
+
+    const int dataSize = vertexData.size() * sizeof(vertexData[0]);
+    vertexBuffer = device->GetDevice().newBuffer(
+        vertexData.data(), dataSize, MTL::ResourceStorageModeManaged);
+
+    renderPipeline = std::make_unique<SHV::Metal::RenderPipeline>(
+        *device, "basic_vertex", "basic_fragment");
+    renderPipeline->SetUp();
 }
 
-void SHV::Metal::Renderer::TearDown() { device->release(); }
+void SHV::Metal::Renderer::TearDown() {
+    renderPipeline->TearDown();
+    renderPipeline = nullptr;
+
+    device->TearDown();
+    device = nullptr;
+}
+
+void SHV::Metal::Renderer::Draw() {}

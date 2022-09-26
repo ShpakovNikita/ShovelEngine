@@ -27,6 +27,7 @@ int Engine::Run() noexcept {
     bool quit = false;
     while (quit == false) {
         while (SDL_PollEvent(&e)) {
+            renderer->Draw();
             if (e.type == SDL_QUIT) quit = true;
         }
     }

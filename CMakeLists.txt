@@ -25,12 +25,11 @@ file(GLOB_RECURSE HEADER_FILES LIST_DIRECTORIES false
         )
 set(SOURCE_FILES ${SOURCE_FILES} ${HEADER_FILES} ${METAL_SHADERS})
 
-include_directories(external)
-include_directories(external/glm)
-include_directories(external/stb)
-include_directories(external/entt)
-include_directories(external/tinygltf)
-include_directories(external/metal-cpp)
+include_directories(SYSTEM external/glm)
+include_directories(SYSTEM external/stb)
+include_directories(SYSTEM external/entt)
+include_directories(SYSTEM external/tinygltf)
+include_directories(SYSTEM external/metal-cpp)
 include_directories(${MINECRAFT_SOURCE_PATH})
 # include_directories(${ENGINE_SOURCE_PATH})
 
@@ -43,7 +42,7 @@ endif (CMAKE_BUILD_TYPE MATCHES DEBUG)
 
 set_source_files_properties(${METAL_SHADERS} ${HEADER_FILES} PROPERTIES LANGUAGE METAL)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -61,4 +60,4 @@ target_compile_definitions(${TARGET_NAME}
         PUBLIC
         $<$<CONFIG:Debug>:SHV_DEBUG>
         )
-target_compile_options(${TARGET_NAME} PRIVATE -Wall -Wextra -pedantic) # -Werror -Wgnu-anonymous-struct
+target_compile_options(${TARGET_NAME} PRIVATE -Wall -Wextra -pedantic -Werror)
