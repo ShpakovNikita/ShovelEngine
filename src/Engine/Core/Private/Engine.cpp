@@ -52,7 +52,6 @@ void Engine::SetUp() {
     }
 
     // Create window
-
     const WindowConfig windowConfig = {immutableConfig.width,
                                        immutableConfig.height};
     window = std::make_unique<Metal::Window>(windowConfig);
@@ -60,16 +59,6 @@ void Engine::SetUp() {
 
     renderer = std::make_unique<Metal::Renderer>(*window.get());
     renderer->SetUp();
-
-    // Get window surface
-    screenSurface = SDL_GetWindowSurface(&window->GetWindow());
-
-    // Fill the surface white
-    SDL_FillRect(screenSurface, nullptr,
-                 SDL_MapRGB(screenSurface->format, 0x00, 0xFF, 0xFF));
-
-    // Update the surface
-    SDL_UpdateWindowSurface(&window->GetWindow());
 }
 
 void Engine::TearDown() {

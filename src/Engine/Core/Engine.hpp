@@ -36,8 +36,6 @@ class Engine {
     const ImmutableConfig& immutableConfig;
     MutableConfig& mutableConfig;
 
-    SDL_Surface* screenSurface = nullptr;
-
     std::unique_ptr<Metal::Renderer> renderer;
     std::unique_ptr<Metal::Window> window;
 

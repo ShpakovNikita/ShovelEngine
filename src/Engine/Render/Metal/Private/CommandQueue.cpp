@@ -16,3 +16,8 @@ void SHV::Metal::CommandQueue::TearDown() {
     commandQueue->release();
     commandQueue = nullptr;
 }
+
+MTL::CommandQueue& SHV::Metal::CommandQueue::GetCommandQueue() const {
+    AssertD(commandQueue != nullptr);
+    return *commandQueue;
+}

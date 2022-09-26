@@ -14,6 +14,8 @@ class CommandQueue {
 
     void SetUp();
     void TearDown();
+    
+    MTL::CommandQueue& GetCommandQueue() const;
 
    private:
     LogicalDevice& device;
