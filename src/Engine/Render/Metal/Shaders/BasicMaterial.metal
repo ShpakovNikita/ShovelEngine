@@ -1,10 +1,24 @@
-vertex float4 basic_vertex(
-  const device packed_float3* vertex_array [[ buffer(0) ]],
-  unsigned int vid [[ vertex_id ]]) {
-  return float4(vertex_array[vid], 1.0);
+#include "ShaderDefinitions.h"
+
+using namespace SHV::Metal;
+
+struct VertexOut {
+    float4 color;
+    float4 pos [[position]];
+};
+
+vertex VertexOut basic_vertex(const device BasicVertexLayout *vertexArray [[buffer(0)]], unsigned int vid [[vertex_id]]) {
+  BasicVertexLayout in = vertexArray[vid];
+
+  VertexOut out;
+
+  out.color = in.pos;
+  out.pos = in.pos;
+
+  return out;
 }
 
-fragment half4 basic_fragment() {
-    return half4(1.0);
+fragment float4 basic_fragment(VertexOut interpolated [[stage_in]]) {
+    return interpolated.color;
 }
 

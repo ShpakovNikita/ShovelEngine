@@ -58,7 +58,7 @@ void Metal::RenderPipeline::TearDown() {
 
 MTL::RenderPipelineState& Metal::RenderPipeline::GetRenderPipelineState()
     const {
-    AssertD(pipelineState == nullptr);
+    AssertD(pipelineState != nullptr);
 
     return *pipelineState;
 }

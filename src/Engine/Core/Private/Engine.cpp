@@ -59,9 +59,13 @@ void Engine::SetUp() {
 
     renderer = std::make_unique<Metal::Renderer>(*window.get());
     renderer->SetUp();
+
+    renderer->LoadPrimitives();
 }
 
 void Engine::TearDown() {
+    renderer->UnloadPrimitives();
+
     renderer->TearDown();
     window->TearDown();
 

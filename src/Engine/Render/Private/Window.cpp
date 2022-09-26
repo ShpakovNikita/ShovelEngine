@@ -20,9 +20,9 @@ void Window::SetUp() {
     AssertD(window == nullptr);
 
     // Create window
-    window = SDL_CreateWindow("SDL Tutorial", SDL_WINDOWPOS_UNDEFINED,
-                              SDL_WINDOWPOS_UNDEFINED, config.width,
-                              config.height, SDL_WINDOW_SHOWN);
+    window = SDL_CreateWindow(
+        "SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+        config.width, config.height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 
     if (window == nullptr) {
         throw SHV::Exception("Window could not be created! SDL_Error: %s\n",
