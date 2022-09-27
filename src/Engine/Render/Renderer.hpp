@@ -9,12 +9,12 @@ enum eRenderApi {
 
 class Renderer {
    public:
-    Renderer(const eRenderApi& renderApi);
+    Renderer() = default;
+    virtual ~Renderer() = default;
 
-    void SetUp();
-    void TearDown();
+    virtual void SetUp() = 0;
+    virtual void TearDown() = 0;
 
-   private:
-    const eRenderApi& renderApi;
+    virtual void Draw() = 0;
 };
 }  // namespace SHV

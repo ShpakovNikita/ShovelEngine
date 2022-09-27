@@ -12,7 +12,6 @@
 #include "Engine/Render/Metal/LogicalDevice.hpp"
 #include "Engine/Render/Metal/Model/RenderBatch.hpp"
 #include "Engine/Render/Metal/RenderPipeline.hpp"
-#include "Engine/Render/Metal/Shaders/ShaderDefinitions.h"
 #include "Engine/Render/Metal/Window.hpp"
 #include "Engine/Render/Model/Material.hpp"
 #include "Engine/Render/Model/Primitive.hpp"
@@ -20,7 +19,8 @@
 #include "Metal/Metal.hpp"
 #include "QuartzCore/QuartzCore.hpp"
 
-SHV::Metal::Renderer::Renderer(Window& metalWindow) : window(metalWindow){};
+SHV::Metal::Renderer::Renderer(Window& metalWindow)
+    : SHV::Renderer(), window(metalWindow){};
 SHV::Metal::Renderer::~Renderer() { AssertD(device == nullptr); }
 
 void SHV::Metal::Renderer::SetUp() {
@@ -34,6 +34,9 @@ void SHV::Metal::Renderer::SetUp() {
 
     commandQueue = std::make_unique<SHV::Metal::CommandQueue>(*device);
     commandQueue->SetUp();
+
+    // TODO: remove
+    LoadPrimitives();
 }
 
 void SHV::Metal::Renderer::LoadPrimitives() {
@@ -53,6 +56,9 @@ void SHV::Metal::Renderer::UnloadPrimitives() {
 }
 
 void SHV::Metal::Renderer::TearDown() {
+    // TODO: remove
+    UnloadPrimitives();
+
     AssertD(commandQueue != nullptr);
     commandQueue->TearDown();
     commandQueue = nullptr;

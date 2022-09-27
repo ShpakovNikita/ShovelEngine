@@ -2,17 +2,11 @@
 
 #include <memory>
 
-struct SDL_Window;
-struct SDL_Surface;
-
 namespace SHV {
 struct ImmutableConfig;
 struct MutableConfig;
 
-namespace Metal {
-class Renderer;
-class Window;
-}  // namespace Metal
+class RenderContext;
 
 class Engine {
    public:
@@ -36,8 +30,7 @@ class Engine {
     const ImmutableConfig& immutableConfig;
     MutableConfig& mutableConfig;
 
-    std::unique_ptr<Metal::Renderer> renderer;
-    std::unique_ptr<Metal::Window> window;
+    std::unique_ptr<RenderContext> renderContext;
 
     bool isRunning = false;
 };

@@ -8,8 +8,7 @@
 #include "Engine/Common/Exception.hpp"
 #include "Engine/Core/ImmutableConfig.hpp"
 #include "Engine/Core/MutableConfig.hpp"
-#include "Engine/Render/Metal/Renderer.hpp"
-#include "Engine/Render/Metal/Window.hpp"
+#include "Engine/Render/RenderContext.hpp"
 #include "Engine/Utils/Logger.hpp"
 
 using namespace SHV;
@@ -18,8 +17,7 @@ Engine::Engine(const ImmutableConfig& aImmutableConfig,
                MutableConfig& aMutableConfig)
     : immutableConfig(aImmutableConfig),
       mutableConfig(aMutableConfig),
-      renderer(nullptr),
-      window(nullptr) {}
+      renderContext(nullptr) {}
 
 int Engine::Run() noexcept {
     try {
@@ -53,21 +51,14 @@ void Engine::SetUp() {
 
     // Create window
     const WindowConfig windowConfig = {immutableConfig.width,
-                                       immutableConfig.height};
-    window = std::make_unique<Metal::Window>(windowConfig);
-    window->SetUp();
-
-    renderer = std::make_unique<Metal::Renderer>(*window.get());
-    renderer->SetUp();
-
-    renderer->LoadPrimitives();
+                                       immutableConfig.height, "Minecraft"};
+    renderContext = std::make_unique<RenderContext>(windowConfig,
+                                                    immutableConfig.renderApi);
+    renderContext->SetUp();
 }
 
 void Engine::TearDown() {
-    renderer->UnloadPrimitives();
-
-    renderer->TearDown();
-    window->TearDown();
+    renderContext->TearDown();
 
     SDL_Quit();
 }
@@ -113,6 +104,8 @@ void Engine::PollEvents(float /* deltaTime */) {
 
 void Engine::UpdateSystems(float /* deltaTime */) {}
 
-void Engine::RenderLoop(float /* deltaTime */) { renderer->Draw(); }
+void Engine::RenderLoop(float /* deltaTime */) {
+    renderContext->GetRenderer().Draw();
+}
 
 Engine::~Engine() = default;

@@ -21,7 +21,7 @@ void Window::SetUp() {
 
     // Create window
     window = SDL_CreateWindow(
-        "SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+        config.name.data(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
         config.width, config.height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 
     if (window == nullptr) {

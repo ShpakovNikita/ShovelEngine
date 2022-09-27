@@ -3,12 +3,15 @@
 #include <string>
 #include <vector>
 
-namespace SHV {
-    struct ImmutableConfig
-    {
-        const uint32_t width;
-        const uint32_t height;
+#include "Engine/Render/Renderer.hpp"
 
-        std::vector<std::string> args;
-    };
-}
+namespace SHV {
+struct ImmutableConfig {
+    const uint32_t width;
+    const uint32_t height;
+
+    eRenderApi renderApi;
+
+    std::vector<std::string> args;
+};
+}  // namespace SHV

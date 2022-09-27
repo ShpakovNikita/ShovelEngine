@@ -1,15 +1,12 @@
 #pragma once
 
-#include <cstdint>
+#include <string>
+
+#include "WindowConfig.hpp"
 
 struct SDL_Window;
 
 namespace SHV {
-struct WindowConfig {
-    const uint32_t width;
-    const uint32_t height;
-};
-
 class Window {
    public:
     Window(const WindowConfig& config);
@@ -25,6 +22,6 @@ class Window {
     virtual void OnTearDownBegin(){};
 
     SDL_Window* window = nullptr;
-    const WindowConfig& config;
+    const WindowConfig config;
 };
 }  // namespace SHV

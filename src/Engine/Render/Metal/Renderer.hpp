@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include "Engine/Render/Renderer.hpp"
+
 namespace MTL {
 class Device;
 class Buffer;
@@ -17,15 +19,15 @@ class RenderPipeline;
 class CommandQueue;
 class RenderBatch;
 
-class Renderer {
+class Renderer : public ::SHV::Renderer {
    public:
     Renderer(Window& metalWindow);
-    ~Renderer();
+    virtual ~Renderer();
 
-    void SetUp();
-    void TearDown();
+    virtual void SetUp();
+    virtual void TearDown();
 
-    void Draw();
+    virtual void Draw();
 
     // TODO: remove;
     void LoadPrimitives();
