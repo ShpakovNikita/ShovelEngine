@@ -2,7 +2,10 @@ cmake_minimum_required(VERSION 3.12.0)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 set(MINECRAFT_SOURCE_PATH "${CMAKE_SOURCE_DIR}/src")
-# set(ENGINE_SOURCE_PATH "${CMAKE_SOURCE_DIR}/src")
+
+set(ENGINE_SOURCE_PATH "${MINECRAFT_SOURCE_PATH}/Engine")
+set(METAL_RENDER_SOURCE_PATH "${ENGINE_SOURCE_PATH}/Render/Metal")
+set(OPEN_GL_RENDER_SOURCE_PATH "${ENGINE_SOURCE_PATH}/Render/OpenGl")
 
 
 # set(ASSETS_DIR "${CMAKE_SOURCE_DIR}/assets")
@@ -30,10 +33,12 @@ include_directories(SYSTEM external/stb)
 include_directories(SYSTEM external/entt)
 include_directories(SYSTEM external/tinygltf)
 include_directories(SYSTEM external/metal-cpp)
+include_directories(SYSTEM external/glew/build/cmake)
 include_directories(${MINECRAFT_SOURCE_PATH})
 # include_directories(${ENGINE_SOURCE_PATH})
 
 # add_definitions(-DASSETS_DIR=\"${ASSETS_DIR}/\")
+add_definitions(-DOPEN_GL_SHADERS_DIR=\"${OPEN_GL_RENDER_SOURCE_PATH}/Shaders/\")
 
 if (CMAKE_BUILD_TYPE MATCHES DEBUG)
     add_definitions(-DGAME_DEBUG)
@@ -49,11 +54,14 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 find_package(SDL2 REQUIRED)
 include_directories(${SDL2_INCLUDE_DIRS})
 
+find_package(GLEW 2.0 REQUIRED)
+
 add_executable(${TARGET_NAME} ${SOURCE_FILES} ${METAL_SHADERS}) # ${ASSETS_DIR}
 
 source_group(TREE ${SOURCE_DIR} FILES ${SOURCE_FILES})
 
 target_link_libraries(${TARGET_NAME} ${SDL2_LIBRARIES})
+target_link_libraries(${TARGET_NAME} GLEW::GLEW)
 target_link_libraries(${TARGET_NAME} "-framework Metal" "-framework QuartzCore")
 
 target_compile_definitions(${TARGET_NAME}

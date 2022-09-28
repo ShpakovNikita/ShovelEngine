@@ -24,7 +24,7 @@ int Engine::Run() noexcept {
         SetUp();
     } catch (SHV::Exception& e) {
         SHV::LogE(SHV::eTag::kBase)
-            << "Critical error occurred during engine SetUp! " << e.what();
+            << "Critical error occurred during engine SetUp: " << e.what();
         return EXIT_FAILURE;
     }
 
@@ -35,7 +35,7 @@ int Engine::Run() noexcept {
         TearDown();
     } catch (SHV::Exception& e) {
         SHV::LogE(SHV::eTag::kBase)
-            << "Critical error occurred during engine TearDown! " << e.what();
+            << "Critical error occurred during engine TearDown: " << e.what();
         return EXIT_FAILURE;
     }
 

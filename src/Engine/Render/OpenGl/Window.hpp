@@ -2,6 +2,8 @@
 
 #include "Engine/Render/Window.hpp"
 
+using SDL_GLContext = void*;
+
 namespace SHV {
 namespace OpenGl {
 class Window : public ::SHV::Window {
@@ -11,6 +13,8 @@ class Window : public ::SHV::Window {
    private:
     virtual void OnSetUpComplete();
     virtual void OnTearDownBegin();
+
+    SDL_GLContext context;
 };
 }  // namespace OpenGl
 }  // namespace SHV

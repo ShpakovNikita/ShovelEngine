@@ -13,3 +13,6 @@
 [submodule "external/metal-cpp"]
 	path = external/metal-cpp
 	url = https://github.com/bkaradzic/metal-cpp.git
+[submodule "external/glew"]
+	path = external/glew
+	url = https://github.com/nigels-com/glew.git
