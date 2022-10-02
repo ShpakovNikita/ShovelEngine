@@ -24,6 +24,9 @@ class Renderer : public SHV::Renderer {
 
     virtual void Draw();
 
+    virtual void BeginFrame();
+    virtual void EndFrame();
+
    private:
     // TODO: remove;
     void LoadPrimitives();

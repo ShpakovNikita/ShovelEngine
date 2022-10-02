@@ -52,3 +52,11 @@ void Window::TearDown() {
 }
 
 const WindowConfig& Window::GetWindowConfig() const { return config; }
+
+const glm::vec2 Window::GetWindowSize() const {
+    int w, h;
+    SDL_GetWindowSize(window, &w, &h);
+    return glm::vec2{w, h};
+}
+
+const glm::vec2 Window::GetViewportSize() const { return GetWindowSize(); }

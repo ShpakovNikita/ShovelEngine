@@ -5,10 +5,13 @@
 #include <chrono>
 #include <thread>
 
+#include <imgui.h>
+
 #include "Engine/Common/Exception.hpp"
 #include "Engine/Common/Logger.hpp"
 #include "Engine/Core/ImmutableConfig.hpp"
 #include "Engine/Core/MutableConfig.hpp"
+#include "Engine/Render/ImGuiImpl.hpp"
 #include "Engine/Render/RenderContext.hpp"
 
 using namespace SHV;
@@ -49,17 +52,23 @@ void Engine::SetUp() {
                         SDL_GetError());
     }
 
-    // Create window
     const WindowConfig windowConfig = {immutableConfig.width,
                                        immutableConfig.height, "Minecraft",
                                        immutableConfig.renderApi};
     renderContext = std::make_unique<RenderContext>(windowConfig,
                                                     immutableConfig.renderApi);
     renderContext->SetUp();
+
+    imgui = std::make_unique<ImGui>(*renderContext);
+    imgui->SetUp();
 }
 
 void Engine::TearDown() {
+    imgui->TearDown();
+    imgui = nullptr;
+
     renderContext->TearDown();
+    renderContext = nullptr;
 
     SDL_Quit();
 }
@@ -99,6 +108,7 @@ void Engine::Tick(float deltaTime) {
 void Engine::PollEvents(float /* deltaTime */) {
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
+        imgui->PollEvents(&e);
         if (e.type == SDL_QUIT) isRunning = false;
     }
 }
@@ -106,7 +116,14 @@ void Engine::PollEvents(float /* deltaTime */) {
 void Engine::UpdateSystems(float /* deltaTime */) {}
 
 void Engine::RenderLoop(float /* deltaTime */) {
+    renderContext->GetRenderer().BeginFrame();
+    imgui->BeginFrame();
+
     renderContext->GetRenderer().Draw();
+    ::ImGui::ShowDemoWindow();
+
+    imgui->EndFrame();
+    renderContext->GetRenderer().EndFrame();
 }
 
 Engine::~Engine() = default;

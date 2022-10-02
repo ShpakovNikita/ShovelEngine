@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <glm/vec2.hpp>
 
 #include "WindowConfig.hpp"
 
@@ -18,6 +19,8 @@ class Window {
     void TearDown();
 
     const WindowConfig& GetWindowConfig() const;
+    const glm::vec2 GetWindowSize() const;
+    virtual const glm::vec2 GetViewportSize() const;
 
    private:
     virtual void OnSetUpComplete(){};

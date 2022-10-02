@@ -24,6 +24,8 @@ class RenderContext {
     Renderer& GetRenderer() const;
     Window& GetWindow() const;
 
+    const eRenderApi& GetRenderApi() const;
+
    private:
     void CreateMetalApiContext();
     void CreateOpenGlContext();

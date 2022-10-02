@@ -69,7 +69,18 @@ void SHV::Metal::Renderer::TearDown() {
 }
 
 void SHV::Metal::Renderer::Draw() {
-    NS::AutoreleasePool* pool = NS::AutoreleasePool::alloc()->init();
+    renderCommandEncoder->setRenderPipelineState(
+        &renderPipeline->GetRenderPipelineState());
+    renderCommandEncoder->setVertexBuffer(&renderBatch->GetVertexBuffer(), 0,
+                                          0);
+    renderCommandEncoder->drawPrimitives(
+        MTL::PrimitiveType::PrimitiveTypeTriangle, 0,
+        renderBatch->GetVertexCount(), 1);
+}
+
+void SHV::Metal::Renderer::BeginFrame() {
+    AssertD(drawPool == nullptr);
+    drawPool = NS::AutoreleasePool::alloc()->init();
 
     CA::MetalDrawable* surface = window.NextDrawable();
 
@@ -77,22 +88,43 @@ void SHV::Metal::Renderer::Draw() {
                                 window.GetWindowConfig().clearColor.g,
                                 window.GetWindowConfig().clearColor.b,
                                 window.GetWindowConfig().clearColor.a);
-    auto renderPassDescriptor = MTL::RenderPassDescriptor::alloc()->init();
+    renderPassDescriptor = MTL::RenderPassDescriptor::alloc()->init();
     auto attachment = renderPassDescriptor->colorAttachments()->object(0);
     attachment->setClearColor(clear_color);
     attachment->setLoadAction(MTL::LoadActionClear);
     attachment->setTexture(surface->texture());
 
-    auto buffer = commandQueue->GetCommandQueue().commandBuffer();
-    auto encoder = buffer->renderCommandEncoder(renderPassDescriptor);
-    encoder->setRenderPipelineState(&renderPipeline->GetRenderPipelineState());
-    encoder->setVertexBuffer(&renderBatch->GetVertexBuffer(), 0, 0);
-    encoder->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, 0,
-                            renderBatch->GetVertexCount(), 1);
-    encoder->endEncoding();
+    commandBuffer = commandQueue->GetCommandQueue().commandBuffer();
+    renderCommandEncoder =
+        commandBuffer->renderCommandEncoder(renderPassDescriptor);
+}
 
-    buffer->presentDrawable(surface);
-    buffer->commit();
+void SHV::Metal::Renderer::EndFrame() {
+    renderCommandEncoder->endEncoding();
 
-    pool->release();
+    CA::MetalDrawable* surface = window.NextDrawable();
+    commandBuffer->presentDrawable(surface);
+    commandBuffer->commit();
+
+    AssertD(drawPool != nullptr);
+    drawPool->release();
+    drawPool = nullptr;
+}
+
+SHV::Metal::LogicalDevice& SHV::Metal::Renderer::GetLogicalDevice() const {
+    return *device;
+}
+
+MTL::RenderPassDescriptor& SHV::Metal::Renderer::GetRenderPassDescriptor()
+    const {
+    return *renderPassDescriptor;
+}
+
+MTL::CommandBuffer& SHV::Metal::Renderer::GetCommandBuffer() const {
+    return *commandBuffer;
+}
+
+MTL::RenderCommandEncoder& SHV::Metal::Renderer::GetRenderCommandEncoder()
+    const {
+    return *renderCommandEncoder;
 }

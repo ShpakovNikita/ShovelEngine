@@ -5,9 +5,11 @@
 #include "Engine/Common/Assert.hpp"
 #include "Engine/Common/Exception.hpp"
 
-SHV::OpenGl::Window::Window(const WindowConfig& config) : SHV::Window(config){};
+using namespace SHV;
 
-void SHV::OpenGl::Window::OnSetUpComplete() {
+OpenGl::Window::Window(const WindowConfig& config) : SHV::Window(config){};
+
+void OpenGl::Window::OnSetUpComplete() {
     AssertD(context == nullptr);
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
@@ -24,7 +26,15 @@ void SHV::OpenGl::Window::OnSetUpComplete() {
     }
 }
 
-void SHV::OpenGl::Window::OnTearDownBegin() {
+void OpenGl::Window::OnTearDownBegin() {
     AssertD(context != nullptr);
     SDL_GL_DeleteContext(context);
+}
+
+SDL_GLContext OpenGl::Window::GetGlContext() { return context; }
+
+const glm::vec2 OpenGl::Window::GetViewportSize() const {
+    int w, h;
+    SDL_GL_GetDrawableSize(&GetWindow(), &w, &h);
+    return glm::vec2{w, h};
 }

@@ -7,6 +7,7 @@ struct ImmutableConfig;
 struct MutableConfig;
 
 class RenderContext;
+class ImGui;
 
 class Engine {
    public:
@@ -31,6 +32,7 @@ class Engine {
     MutableConfig& mutableConfig;
 
     std::unique_ptr<RenderContext> renderContext;
+    std::unique_ptr<ImGui> imgui;
 
     bool isRunning = false;
 };

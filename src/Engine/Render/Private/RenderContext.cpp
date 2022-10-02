@@ -25,6 +25,10 @@ SHV::Window& SHV::RenderContext::GetWindow() const {
     return *window;
 }
 
+const SHV::eRenderApi& SHV::RenderContext::GetRenderApi() const {
+    return renderApi;
+}
+
 void SHV::RenderContext::SetUp() {
     // Create window
     switch (renderApi) {

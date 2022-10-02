@@ -51,18 +51,26 @@ void SHV::OpenGl::Renderer::TearDown() {
 }
 
 void SHV::OpenGl::Renderer::Draw() {
+    program->Use();
+    renderBatch->Bind();
+    glDrawArrays(GL_TRIANGLES, 0, renderBatch->GetVertexCount());
+}
+
+void SHV::OpenGl::Renderer::BeginFrame() {
+    const auto viewportSize = window.GetViewportSize();
+    glViewport(0, 0, viewportSize.x, viewportSize.y);
+
     glClearColor(window.GetWindowConfig().clearColor.r,
                  window.GetWindowConfig().clearColor.g,
                  window.GetWindowConfig().clearColor.b,
                  window.GetWindowConfig().clearColor.a);
+
     glClear(GL_COLOR_BUFFER_BIT);
+};
 
-    program->Use();
-    renderBatch->Bind();
-    glDrawArrays(GL_TRIANGLES, 0, renderBatch->GetVertexCount());
-
+void SHV::OpenGl::Renderer::EndFrame() {
     SDL_GL_SwapWindow(&window.GetWindow());
-}
+};
 
 std::optional<std::string> SHV::OpenGl::Renderer::ValidateExtensions() {
     return std::nullopt;

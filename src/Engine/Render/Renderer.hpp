@@ -16,5 +16,7 @@ class Renderer {
     virtual void TearDown() = 0;
 
     virtual void Draw() = 0;
+    virtual void BeginFrame(){};
+    virtual void EndFrame(){};
 };
 }  // namespace SHV

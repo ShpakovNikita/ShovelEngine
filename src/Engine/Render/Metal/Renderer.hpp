@@ -7,7 +7,14 @@
 namespace MTL {
 class Device;
 class Buffer;
+class RenderPassDescriptor;
+class CommandBuffer;
+class RenderCommandEncoder;
 }  // namespace MTL
+
+namespace NS {
+class AutoreleasePool;
+}  // namespace NS
 
 namespace SHV {
 
@@ -29,16 +36,30 @@ class Renderer : public ::SHV::Renderer {
 
     virtual void Draw();
 
+    virtual void BeginFrame();
+    virtual void EndFrame();
+
+    LogicalDevice& GetLogicalDevice() const;
+
+    MTL::RenderPassDescriptor& GetRenderPassDescriptor() const;
+    MTL::CommandBuffer& GetCommandBuffer() const;
+    MTL::RenderCommandEncoder& GetRenderCommandEncoder() const;
+
+   private:
     // TODO: remove;
     void LoadPrimitives();
     void UnloadPrimitives();
 
-   private:
     std::unique_ptr<LogicalDevice> device;
     std::unique_ptr<RenderPipeline> renderPipeline;
     std::unique_ptr<CommandQueue> commandQueue;
 
     std::shared_ptr<RenderBatch> renderBatch;
+
+    NS::AutoreleasePool* drawPool = nullptr;
+    MTL::RenderPassDescriptor* renderPassDescriptor = nullptr;
+    MTL::CommandBuffer* commandBuffer = nullptr;
+    MTL::RenderCommandEncoder* renderCommandEncoder = nullptr;
 
     Window& window;
 };
