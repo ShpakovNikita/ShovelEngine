@@ -1,7 +1,7 @@
 #include "Engine/Render/Metal/CommandQueue.hpp"
 
+#include "Engine/Common/Assert.hpp"
 #include "Engine/Render/Metal/LogicalDevice.hpp"
-#include "Engine/Utils/Assert.hpp"
 #include "Metal/Metal.hpp"
 
 SHV::Metal::CommandQueue::CommandQueue(LogicalDevice& aDevice)

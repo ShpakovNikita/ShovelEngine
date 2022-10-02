@@ -1,7 +1,13 @@
 #version 330 core
 out vec4 FragColor;
 
+struct Vertex {
+    vec4 color;
+};
+
+in Vertex vertex;
+
 void main()
 {
-    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
+    FragColor = vertex.color;
 } 

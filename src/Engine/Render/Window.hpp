@@ -17,6 +17,8 @@ class Window {
     void SetUp();
     void TearDown();
 
+    const WindowConfig& GetWindowConfig() const;
+
    private:
     virtual void OnSetUpComplete(){};
     virtual void OnTearDownBegin(){};

@@ -1,7 +1,7 @@
 #include "Engine/Render/Metal/Window.hpp"
 
+#include "Engine/Common/Assert.hpp"
 #include "Engine/Render/Metal/MetalBridge.hpp"
-#include "Engine/Utils/Assert.hpp"
 
 SHV::Metal::Window::Window(const WindowConfig& config) : SHV::Window(config){};
 

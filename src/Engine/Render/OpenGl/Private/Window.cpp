@@ -2,8 +2,8 @@
 
 #include <SDL_video.h>
 
+#include "Engine/Common/Assert.hpp"
 #include "Engine/Common/Exception.hpp"
-#include "Engine/Utils/Assert.hpp"
 
 SHV::OpenGl::Window::Window(const WindowConfig& config) : SHV::Window(config){};
 

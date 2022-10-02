@@ -6,10 +6,10 @@
 #include <thread>
 
 #include "Engine/Common/Exception.hpp"
+#include "Engine/Common/Logger.hpp"
 #include "Engine/Core/ImmutableConfig.hpp"
 #include "Engine/Core/MutableConfig.hpp"
 #include "Engine/Render/RenderContext.hpp"
-#include "Engine/Utils/Logger.hpp"
 
 using namespace SHV;
 
@@ -51,7 +51,8 @@ void Engine::SetUp() {
 
     // Create window
     const WindowConfig windowConfig = {immutableConfig.width,
-                                       immutableConfig.height, "Minecraft"};
+                                       immutableConfig.height, "Minecraft",
+                                       immutableConfig.renderApi};
     renderContext = std::make_unique<RenderContext>(windowConfig,
                                                     immutableConfig.renderApi);
     renderContext->SetUp();

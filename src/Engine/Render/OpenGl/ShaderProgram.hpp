@@ -12,7 +12,7 @@ class ShaderProgram {
     void SetUp();
     void TearDown();
 
-    GLuint& GetShaderProgram();
+    void Use();
 
    private:
     GLuint program;

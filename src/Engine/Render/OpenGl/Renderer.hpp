@@ -3,6 +3,8 @@
 #include <GL/glew.h>
 
 #include <memory>
+#include <optional>
+#include <string>
 
 #include "Engine/Render/Renderer.hpp"
 
@@ -10,6 +12,7 @@ namespace SHV::OpenGl {
 
 class Window;
 class ShaderProgram;
+class RenderBatch;
 
 class Renderer : public SHV::Renderer {
    public:
@@ -22,7 +25,17 @@ class Renderer : public SHV::Renderer {
     virtual void Draw();
 
    private:
+    // TODO: remove;
+    void LoadPrimitives();
+    void UnloadPrimitives();
+
+    std::optional<std::string> ValidateExtensions();
+
+    std::shared_ptr<RenderBatch> renderBatch;
+
     std::unique_ptr<ShaderProgram> program;
+
+    Window& window;
 };
 
 }  // namespace SHV::OpenGl

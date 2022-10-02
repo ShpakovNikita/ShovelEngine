@@ -4,6 +4,8 @@
 
 using SDL_GLContext = void*;
 
+struct SDL_VideoInfo;
+
 namespace SHV {
 namespace OpenGl {
 class Window : public ::SHV::Window {

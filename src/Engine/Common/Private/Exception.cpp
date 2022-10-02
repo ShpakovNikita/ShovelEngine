@@ -1,6 +1,6 @@
 #include "Engine/Common/Exception.hpp"
 
-#include "Engine/Utils/String.hpp"
+#include "Engine/Common/String.hpp"
 
 SHV::Exception::Exception(std::string aMessage) : message(aMessage) {}
 

@@ -4,9 +4,9 @@
 
 #include "Engine/Render/Metal/LogicalDevice.hpp"
 
+#include "Engine/Common/Assert.hpp"
 #include "Engine/Render/Metal/MetalBridge.hpp"
 #include "Engine/Render/Metal/Window.hpp"
-#include "Engine/Utils/Assert.hpp"
 #include "Metal/Metal.hpp"
 
 using namespace SHV;

@@ -9,9 +9,9 @@
 #include <iostream>
 #include <vector>
 
+#include "Engine/Common/Assert.hpp"
 #include "Engine/Common/Exception.hpp"
-#include "Engine/Utils/Assert.hpp"
-#include "Engine/Utils/Logger.hpp"
+#include "Engine/Common/Logger.hpp"
 
 namespace SHV::OpenGl::SShaderProgram {
 std::string ReadFile(const std::string& filePath) {
@@ -132,7 +132,7 @@ void SHV::OpenGl::ShaderProgram::TearDown() {
     glDeleteProgram(program);
 }
 
-GLuint& SHV::OpenGl::ShaderProgram::GetShaderProgram() {
+void SHV::OpenGl::ShaderProgram::Use() {
     AssertD(program != 0);
-    return program;
+    glUseProgram(program);
 }

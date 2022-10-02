@@ -4,10 +4,7 @@
 
 #include "Engine/Render/Metal/Renderer.hpp"
 
-#include <simd/simd.h>
-
-#include <vector>
-
+#include "Engine/Common/Assert.hpp"
 #include "Engine/Render/Metal/CommandQueue.hpp"
 #include "Engine/Render/Metal/LogicalDevice.hpp"
 #include "Engine/Render/Metal/Model/RenderBatch.hpp"
@@ -15,7 +12,6 @@
 #include "Engine/Render/Metal/Window.hpp"
 #include "Engine/Render/Model/Material.hpp"
 #include "Engine/Render/Model/Primitive.hpp"
-#include "Engine/Utils/Assert.hpp"
 #include "Metal/Metal.hpp"
 #include "QuartzCore/QuartzCore.hpp"
 
@@ -77,8 +73,10 @@ void SHV::Metal::Renderer::Draw() {
 
     CA::MetalDrawable* surface = window.NextDrawable();
 
-    MTL::ClearColor clear_color(74.0 / 255.0, 100.0 / 255.0, 108.0 / 255.0,
-                                1.0);
+    MTL::ClearColor clear_color(window.GetWindowConfig().clearColor.r,
+                                window.GetWindowConfig().clearColor.g,
+                                window.GetWindowConfig().clearColor.b,
+                                window.GetWindowConfig().clearColor.a);
     auto renderPassDescriptor = MTL::RenderPassDescriptor::alloc()->init();
     auto attachment = renderPassDescriptor->colorAttachments()->object(0);
     attachment->setClearColor(clear_color);
@@ -89,7 +87,8 @@ void SHV::Metal::Renderer::Draw() {
     auto encoder = buffer->renderCommandEncoder(renderPassDescriptor);
     encoder->setRenderPipelineState(&renderPipeline->GetRenderPipelineState());
     encoder->setVertexBuffer(&renderBatch->GetVertexBuffer(), 0, 0);
-    encoder->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, 0, 3, 1);
+    encoder->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, 0,
+                            renderBatch->GetVertexCount(), 1);
     encoder->endEncoding();
 
     buffer->presentDrawable(surface);

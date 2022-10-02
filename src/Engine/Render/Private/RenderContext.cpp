@@ -1,10 +1,10 @@
 #include "Engine/Render/RenderContext.hpp"
 
+#include "Engine/Common/Assert.hpp"
 #include "Engine/Render/Metal/Renderer.hpp"
 #include "Engine/Render/Metal/Window.hpp"
 #include "Engine/Render/OpenGl/Renderer.hpp"
 #include "Engine/Render/OpenGl/Window.hpp"
-#include "Engine/Utils/Assert.hpp"
 
 SHV::RenderContext::RenderContext(const WindowConfig& aConfig,
                                   const eRenderApi& aRenderApi)
@@ -46,7 +46,7 @@ void SHV::RenderContext::SetUp() {
 void SHV::RenderContext::TearDown() {
     AssertD(window != nullptr);
     AssertD(renderer != nullptr);
-    
+
     renderer->TearDown();
     window->TearDown();
 }
