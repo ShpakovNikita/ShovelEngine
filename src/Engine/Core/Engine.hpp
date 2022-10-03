@@ -8,6 +8,7 @@ struct MutableConfig;
 
 class RenderContext;
 class ImGui;
+class Toolbar;
 
 class Engine {
    public:
@@ -33,6 +34,7 @@ class Engine {
 
     std::unique_ptr<RenderContext> renderContext;
     std::unique_ptr<ImGui> imgui;
+    std::unique_ptr<Toolbar> toolbar;
 
     bool isRunning = false;
 };

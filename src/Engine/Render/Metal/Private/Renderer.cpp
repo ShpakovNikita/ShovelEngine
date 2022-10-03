@@ -82,7 +82,8 @@ void SHV::Metal::Renderer::BeginFrame() {
     AssertD(drawPool == nullptr);
     drawPool = NS::AutoreleasePool::alloc()->init();
 
-    CA::MetalDrawable* surface = window.NextDrawable();
+    AssertD(surface == nullptr);
+    surface = window.NextDrawable();
 
     MTL::ClearColor clear_color(window.GetWindowConfig().clearColor.r,
                                 window.GetWindowConfig().clearColor.g,
@@ -102,9 +103,10 @@ void SHV::Metal::Renderer::BeginFrame() {
 void SHV::Metal::Renderer::EndFrame() {
     renderCommandEncoder->endEncoding();
 
-    CA::MetalDrawable* surface = window.NextDrawable();
+    AssertD(surface != nullptr);
     commandBuffer->presentDrawable(surface);
     commandBuffer->commit();
+    surface = nullptr;
 
     AssertD(drawPool != nullptr);
     drawPool->release();

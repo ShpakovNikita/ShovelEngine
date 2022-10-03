@@ -16,6 +16,10 @@ namespace NS {
 class AutoreleasePool;
 }  // namespace NS
 
+namespace CA {
+class MetalDrawable;
+}  // namespace CA
+
 namespace SHV {
 
 namespace Metal {
@@ -60,6 +64,7 @@ class Renderer : public ::SHV::Renderer {
     MTL::RenderPassDescriptor* renderPassDescriptor = nullptr;
     MTL::CommandBuffer* commandBuffer = nullptr;
     MTL::RenderCommandEncoder* renderCommandEncoder = nullptr;
+    CA::MetalDrawable* surface = nullptr;
 
     Window& window;
 };

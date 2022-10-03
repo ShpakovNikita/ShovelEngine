@@ -13,6 +13,7 @@
 #include "Engine/Core/MutableConfig.hpp"
 #include "Engine/Render/ImGuiImpl.hpp"
 #include "Engine/Render/RenderContext.hpp"
+#include "Engine/Tools/Toolbar.hpp"
 
 using namespace SHV;
 
@@ -61,9 +62,13 @@ void Engine::SetUp() {
 
     imgui = std::make_unique<ImGui>(*renderContext);
     imgui->SetUp();
+
+    toolbar = std::make_unique<Toolbar>();
 }
 
 void Engine::TearDown() {
+    toolbar = nullptr;
+
     imgui->TearDown();
     imgui = nullptr;
 
@@ -120,7 +125,7 @@ void Engine::RenderLoop(float /* deltaTime */) {
     imgui->BeginFrame();
 
     renderContext->GetRenderer().Draw();
-    ::ImGui::ShowDemoWindow();
+    toolbar->Draw();
 
     imgui->EndFrame();
     renderContext->GetRenderer().EndFrame();

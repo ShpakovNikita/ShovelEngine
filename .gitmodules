@@ -22,3 +22,13 @@
 [submodule "external/imgui"]
 	path = external/imgui
 	url = https://github.com/ocornut/imgui.git
+[submodule "external/ImGuiFileDialog"]
+	path = external/ImGuiFileDialog
+	url = https://github.com/aiekick/ImGuiFileDialog.git
+	branch = Lib_Only
+[submodule "external/glTF-Sample-Models"]
+	path = external/glTF-Sample-Models
+	url = https://github.com/KhronosGroup/glTF-Sample-Models.git
+[submodule "external/json"]
+	path = external/json
+	url = https://github.com/nlohmann/json.git

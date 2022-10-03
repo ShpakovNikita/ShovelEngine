@@ -72,7 +72,10 @@ void SHV::ImGui::SetUp() {
         sizeof(ImVec4), sizeof(ImDrawVert), sizeof(ImDrawIdx));
     ::ImGui::CreateContext();
 
-    ::ImGui::StyleColorsLight();
+    ImGuiStyle style;
+    style.WindowBorderSize = 0.0f;
+    style.WindowRounding = 12.0f;
+    ::ImGui::StyleColorsDark(&style);
 
     switch (renderContext.GetRenderApi()) {
         case eRenderApi::kOpenGLES:

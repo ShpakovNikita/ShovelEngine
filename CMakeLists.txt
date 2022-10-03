@@ -8,6 +8,7 @@ set(METAL_RENDER_SOURCE_PATH "${ENGINE_SOURCE_PATH}/Render/Metal")
 set(OPEN_GL_RENDER_SOURCE_PATH "${ENGINE_SOURCE_PATH}/Render/OpenGl")
 
 set(IMGUI_SOURCE_PATH "${CMAKE_SOURCE_DIR}/external/imgui")
+set(IMGUI_FILE_DIALOG_SOURCE_PATH "${CMAKE_SOURCE_DIR}/external/ImGuiFileDialog")
 
 
 # set(ASSETS_DIR "${CMAKE_SOURCE_DIR}/assets")
@@ -52,6 +53,11 @@ add_library(imgui STATIC
         ${IMGUI_SOURCE_PATH}/backends/imgui_impl_opengl3_loader.h
         ${IMGUI_SOURCE_PATH}/backends/imgui_impl_metal.h
         ${IMGUI_SOURCE_PATH}/backends/imgui_impl_metal.mm
+
+        # File dialog
+        ${IMGUI_FILE_DIALOG_SOURCE_PATH}/ImGuiFileDialog.cpp
+        ${IMGUI_FILE_DIALOG_SOURCE_PATH}/ImGuiFileDialog.h
+        ${IMGUI_FILE_DIALOG_SOURCE_PATH}/ImGuiFileDialogConfig.h
         )
 target_include_directories(imgui
         PUBLIC
@@ -69,17 +75,19 @@ set(SOURCE_FILES ${SOURCE_FILES} ${HEADER_FILES} ${METAL_SHADERS})
 
 include_directories(SYSTEM external/glm)
 include_directories(SYSTEM external/stb)
-include_directories(SYSTEM external/entt)
+include_directories(SYSTEM external/entt/src)
 include_directories(SYSTEM external/tinygltf)
 include_directories(SYSTEM ${IMGUI_SOURCE_PATH})
 include_directories(SYSTEM ${IMGUI_SOURCE_PATH}/backends)
+include_directories(SYSTEM ${IMGUI_FILE_DIALOG_SOURCE_PATH})
 include_directories(SYSTEM external/metal-cpp)
 include_directories(SYSTEM external/CrossShader)
 include_directories(SYSTEM external/glew/build/cmake)
+include_directories(SYSTEM external/json/include)
 include_directories(${MINECRAFT_SOURCE_PATH})
 # include_directories(${ENGINE_SOURCE_PATH})
 
-# add_definitions(-DASSETS_DIR=\"${ASSETS_DIR}/\")
+add_definitions(-DSAMPLE_MODELS_DIR=\"${CMAKE_SOURCE_DIR}/external/glTF-Sample-Models/2.0/\")
 add_definitions(-DOPEN_GL_SHADERS_DIR=\"${OPEN_GL_RENDER_SOURCE_PATH}/Shaders/\")
 
 if (CMAKE_BUILD_TYPE MATCHES DEBUG)
