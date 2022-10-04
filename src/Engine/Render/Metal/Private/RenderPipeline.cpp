@@ -1,6 +1,7 @@
 #include "Engine/Render/Metal/RenderPipeline.hpp"
 
 #include "Engine/Common/Assert.hpp"
+#include "Engine/Common/Logger.hpp"
 #include "Engine/Common/Exception.hpp"
 #include "Engine/Render/Metal/LogicalDevice.hpp"
 #include "Metal/Metal.hpp"
@@ -15,6 +16,8 @@ Metal::RenderPipeline::RenderPipeline(LogicalDevice& aLogicalDevice,
       fragmentProgramName(aFragmentProgramName) {}
 
 void Metal::RenderPipeline::SetUp() {
+    LogD(eTag::kMetalAPI) << "Setting up Render Pipeline" << std::endl;
+
     MTL::Library* defaultLibrary =
         logicalDevice.GetDevice().newDefaultLibrary();
     AssertD(defaultLibrary != nullptr);
@@ -54,6 +57,8 @@ void Metal::RenderPipeline::TearDown() {
     AssertD(pipelineState != nullptr);
     pipelineState->release();
     pipelineState = nullptr;
+
+    LogD(eTag::kMetalAPI) << "Render Pipeline teared down" << std::endl;
 };
 
 MTL::RenderPipelineState& Metal::RenderPipeline::GetRenderPipelineState()

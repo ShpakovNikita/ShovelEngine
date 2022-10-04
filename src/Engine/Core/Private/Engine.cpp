@@ -14,6 +14,7 @@
 #include "Engine/Render/ImGuiImpl.hpp"
 #include "Engine/Render/RenderContext.hpp"
 #include "Engine/Tools/Toolbar.hpp"
+#include "Engine/ECS/Scene.hpp"
 
 using namespace SHV;
 
@@ -24,6 +25,7 @@ Engine::Engine(const ImmutableConfig& aImmutableConfig,
       renderContext(nullptr) {}
 
 int Engine::Run() noexcept {
+    LogI(eTag::kEngine) << "Engine setup begin" << std::endl;
     try {
         SetUp();
     } catch (SHV::Exception& e) {
@@ -31,10 +33,12 @@ int Engine::Run() noexcept {
             << "Critical error occurred during engine SetUp: " << e.what();
         return EXIT_FAILURE;
     }
+    LogI(eTag::kEngine) << "Engine setup complete" << std::endl;
 
     // Executes until some command to close engine
     MainLoop();
 
+    LogI(eTag::kEngine) << "Engine tear down begin" << std::endl;
     try {
         TearDown();
     } catch (SHV::Exception& e) {
@@ -42,6 +46,7 @@ int Engine::Run() noexcept {
             << "Critical error occurred during engine TearDown: " << e.what();
         return EXIT_FAILURE;
     }
+    LogI(eTag::kEngine) << "Engine tear down complete" << std::endl;
 
     return EXIT_SUCCESS;
 }
@@ -53,9 +58,9 @@ void Engine::SetUp() {
                         SDL_GetError());
     }
 
-    const WindowConfig windowConfig = {immutableConfig.width,
-                                       immutableConfig.height, "Minecraft",
-                                       immutableConfig.renderApi};
+    const WindowConfig windowConfig = {
+        immutableConfig.width, immutableConfig.height,
+        immutableConfig.windowName, immutableConfig.renderApi};
     renderContext = std::make_unique<RenderContext>(windowConfig,
                                                     immutableConfig.renderApi);
     renderContext->SetUp();
@@ -63,10 +68,12 @@ void Engine::SetUp() {
     imgui = std::make_unique<ImGui>(*renderContext);
     imgui->SetUp();
 
-    toolbar = std::make_unique<Toolbar>();
+    scene = std::make_unique<Scene>();
+    toolbar = std::make_unique<Toolbar>(*scene);
 }
 
 void Engine::TearDown() {
+    scene = nullptr;
     toolbar = nullptr;
 
     imgui->TearDown();
@@ -81,6 +88,8 @@ void Engine::TearDown() {
 void Engine::MainLoop() {
     isRunning = true;
     const float minSecPerFrame = 1.0f / mutableConfig.fpsLimit;
+
+    LogI(eTag::kEngine) << "Engine starting main loop" << std::endl;
 
     auto previousTime = std::chrono::high_resolution_clock::now();
     std::this_thread::sleep_for(std::chrono::microseconds(
@@ -102,6 +111,8 @@ void Engine::MainLoop() {
 
         previousTime = currentTime;
     }
+
+    LogI(eTag::kEngine) << "Engine ended main loop" << std::endl;
 }
 
 void Engine::Tick(float deltaTime) {
@@ -124,7 +135,7 @@ void Engine::RenderLoop(float /* deltaTime */) {
     renderContext->GetRenderer().BeginFrame();
     imgui->BeginFrame();
 
-    renderContext->GetRenderer().Draw();
+    renderContext->GetRenderer().Draw(*scene);
     toolbar->Draw();
 
     imgui->EndFrame();

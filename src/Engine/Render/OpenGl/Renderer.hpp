@@ -22,7 +22,7 @@ class Renderer : public SHV::Renderer {
     virtual void SetUp();
     virtual void TearDown();
 
-    virtual void Draw();
+    virtual void Draw(const Scene& scene);
 
     virtual void BeginFrame();
     virtual void EndFrame();
@@ -35,7 +35,6 @@ class Renderer : public SHV::Renderer {
     std::optional<std::string> ValidateExtensions();
 
     std::shared_ptr<RenderBatch> renderBatch;
-
     std::unique_ptr<ShaderProgram> program;
 
     Window& window;

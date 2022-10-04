@@ -2,6 +2,8 @@
 
 #include <SDL_video.h>
 
+#include <entt/entity/registry.hpp>
+
 #include "Engine/Common/Assert.hpp"
 #include "Engine/Common/Exception.hpp"
 #include "Engine/Render/Model/Material.hpp"
@@ -9,6 +11,10 @@
 #include "Engine/Render/OpenGl/Model/RenderBatch.hpp"
 #include "Engine/Render/OpenGl/ShaderProgram.hpp"
 #include "Engine/Render/OpenGl/Window.hpp"
+
+#include "Engine/ECS/Scene.hpp"
+#include "Engine/ECS/Components/RenderComponent.hpp"
+#include "Engine/ECS/Components/TransformComponent.hpp"
 
 SHV::OpenGl::Renderer::Renderer(SHV::OpenGl::Window& aWindow)
     : SHV::Renderer(), window(aWindow){};
@@ -50,10 +56,28 @@ void SHV::OpenGl::Renderer::TearDown() {
     program = nullptr;
 }
 
-void SHV::OpenGl::Renderer::Draw() {
-    program->Use();
-    renderBatch->Bind();
-    glDrawArrays(GL_TRIANGLES, 0, renderBatch->GetVertexCount());
+void SHV::OpenGl::Renderer::Draw(const Scene& scene) {
+    const auto renderView =
+        scene.GetRegistry()
+            .view<SHV::RenderComponent, SHV::TransformComponent>();
+
+    // TODO: remove
+    {
+        program->Use();
+        renderBatch->Bind();
+        glDrawArrays(GL_TRIANGLES, 0, renderBatch->GetVertexCount());
+    }
+
+    for (const auto& [entity, renderComponent, transformComponent] :
+         renderView.each()) {
+        // TODO: Something logical
+        if (renderComponent.renderBatch ||
+            transformComponent.localTransform.length()) {
+            program->Use();
+            renderBatch->Bind();
+            glDrawArrays(GL_TRIANGLES, 0, renderBatch->GetVertexCount());
+        }
+    }
 }
 
 void SHV::OpenGl::Renderer::BeginFrame() {

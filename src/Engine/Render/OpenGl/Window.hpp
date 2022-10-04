@@ -18,7 +18,7 @@ class Window : public ::SHV::Window {
     virtual void OnSetUpComplete();
     virtual void OnTearDownBegin();
 
-    SDL_GLContext context;
+    SDL_GLContext context = nullptr;
 };
 }  // namespace OpenGl
 }  // namespace SHV

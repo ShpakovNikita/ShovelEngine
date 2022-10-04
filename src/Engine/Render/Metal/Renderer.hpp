@@ -38,7 +38,7 @@ class Renderer : public ::SHV::Renderer {
     virtual void SetUp();
     virtual void TearDown();
 
-    virtual void Draw();
+    virtual void Draw(const Scene& scene);
 
     virtual void BeginFrame();
     virtual void EndFrame();

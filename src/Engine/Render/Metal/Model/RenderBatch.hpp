@@ -3,6 +3,8 @@
 #include <cstddef>
 #include <memory>
 
+#include "Engine/Render/Model/RenderBatch.hpp"
+
 namespace MTL {
 class Buffer;
 }
@@ -12,9 +14,9 @@ struct Primitive;
 namespace Metal {
 class LogicalDevice;
 
-class RenderBatch {
+class RenderBatch : public SHV::RenderBatch {
    public:
-    ~RenderBatch();
+    virtual ~RenderBatch();
 
     static std::shared_ptr<RenderBatch> Create(LogicalDevice& device,
                                                void* data, size_t vertexCount,

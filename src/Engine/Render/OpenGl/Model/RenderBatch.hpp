@@ -2,6 +2,8 @@
 
 #include <GL/glew.h>
 
+#include "Engine/Render/Model/RenderBatch.hpp"
+
 #include <cstddef>
 #include <memory>
 
@@ -10,7 +12,7 @@ struct Primitive;
 namespace OpenGl {
 class LogicalDevice;
 
-class RenderBatch {
+class RenderBatch : public SHV::RenderBatch {
    public:
     ~RenderBatch();
 

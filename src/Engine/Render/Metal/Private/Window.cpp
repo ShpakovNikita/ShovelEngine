@@ -1,6 +1,7 @@
 #include "Engine/Render/Metal/Window.hpp"
 
 #include "Engine/Common/Assert.hpp"
+#include "Engine/Common/Logger.hpp"
 #include "Engine/Render/Metal/MetalBridge.hpp"
 
 SHV::Metal::Window::Window(const WindowConfig& config) : SHV::Window(config){};
@@ -21,7 +22,13 @@ CA::MetalDrawable* SHV::Metal::Window::NextDrawable() const {
 }
 
 void SHV::Metal::Window::OnSetUpComplete() {
+    LogD(eTag::kMetalAPI) << "Window OnSetUpComplete" << std::endl;
+
     metalView = SDL_Metal_CreateView(&GetWindow());
 }
 
-void SHV::Metal::Window::OnTearDownBegin() { SDL_Metal_DestroyView(metalView); }
+void SHV::Metal::Window::OnTearDownBegin() {
+    SDL_Metal_DestroyView(metalView);
+
+    LogD(eTag::kMetalAPI) << "Window OnTearDownBegin" << std::endl;
+}

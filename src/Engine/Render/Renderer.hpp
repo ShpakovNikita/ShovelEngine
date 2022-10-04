@@ -1,6 +1,10 @@
 #pragma once
 
+#include <memory>
+
 namespace SHV {
+
+class Scene;
 
 enum eRenderApi {
     kMetal,
@@ -9,13 +13,13 @@ enum eRenderApi {
 
 class Renderer {
    public:
-    Renderer() = default;
-    virtual ~Renderer() = default;
+    Renderer();
+    virtual ~Renderer();
 
     virtual void SetUp() = 0;
     virtual void TearDown() = 0;
 
-    virtual void Draw() = 0;
+    virtual void Draw(const Scene& scene) = 0;
     virtual void BeginFrame(){};
     virtual void EndFrame(){};
 };

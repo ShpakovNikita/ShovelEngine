@@ -5,6 +5,9 @@
 
 #include <string>
 
+#include "Engine/ECS/Scene.hpp"
+#include "Engine/Tools/Scene/GltfSceneLoader.hpp"
+
 namespace SHV::SToolbar {
 std::string GetSampleModelsDir() {
 #if defined(SAMPLE_MODELS_DIR)
@@ -14,6 +17,8 @@ std::string GetSampleModelsDir() {
 #endif
 }
 }  // namespace SHV::SToolbar
+
+SHV::Toolbar::Toolbar(SHV::Scene& aScene) : scene(aScene) {}
 
 void SHV::Toolbar::Draw() {
     // ::ImGui::ShowDemoWindow();
@@ -39,9 +44,8 @@ void SHV::Toolbar::Draw() {
         if (ImGuiFileDialog::Instance()->IsOk()) {
             std::string filePathName =
                 ImGuiFileDialog::Instance()->GetFilePathName();
-            std::string filePath =
-                ImGuiFileDialog::Instance()->GetCurrentPath();
-            // action
+
+            SHV::LoadGltfModelToScene(scene, filePathName);
         }
 
         // close

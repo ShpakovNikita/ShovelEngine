@@ -13,5 +13,7 @@ struct ImmutableConfig {
     eRenderApi renderApi;
 
     std::vector<std::string> args;
+
+    std::string windowName = "Shovel Engine";
 };
 }  // namespace SHV

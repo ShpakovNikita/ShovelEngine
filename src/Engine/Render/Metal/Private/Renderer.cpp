@@ -5,6 +5,7 @@
 #include "Engine/Render/Metal/Renderer.hpp"
 
 #include "Engine/Common/Assert.hpp"
+#include "Engine/Common/Logger.hpp"
 #include "Engine/Render/Metal/CommandQueue.hpp"
 #include "Engine/Render/Metal/LogicalDevice.hpp"
 #include "Engine/Render/Metal/Model/RenderBatch.hpp"
@@ -20,6 +21,8 @@ SHV::Metal::Renderer::Renderer(Window& metalWindow)
 SHV::Metal::Renderer::~Renderer() { AssertD(device == nullptr); }
 
 void SHV::Metal::Renderer::SetUp() {
+    LogD(eTag::kMetalAPI) << "Setting up Metal Renderer" << std::endl;
+
     device = std::make_unique<SHV::Metal::LogicalDevice>();
     device->SetUp();
     device->AssignDeviceToWindow(window);
@@ -66,9 +69,11 @@ void SHV::Metal::Renderer::TearDown() {
     AssertD(device != nullptr);
     device->TearDown();
     device = nullptr;
+
+    LogD(eTag::kMetalAPI) << "Metal Renderer teared down" << std::endl;
 }
 
-void SHV::Metal::Renderer::Draw() {
+void SHV::Metal::Renderer::Draw(const Scene& scene [[maybe_unused]]) {
     renderCommandEncoder->setRenderPipelineState(
         &renderPipeline->GetRenderPipelineState());
     renderCommandEncoder->setVertexBuffer(&renderBatch->GetVertexBuffer(), 0,
