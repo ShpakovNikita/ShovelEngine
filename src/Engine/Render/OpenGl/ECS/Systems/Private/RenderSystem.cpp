@@ -1,10 +1,19 @@
 #include "Engine/Render/OpenGl/ECS/Systems/RenderSystem.hpp"
 
+#include "Engine/Common/Assert.hpp"
+
 #include "Engine/ECS/Components/RenderComponent.hpp"
 #include "Engine/ECS/Components/TransformComponent.hpp"
 #include "Engine/Render/OpenGl/ECS/Components/RenderComponent.hpp"
 
 using namespace SHV;
+
+namespace SHV::OpenGl::SRenderSystem {
+bool IsRegistryEmptyFromBatchedRenderComponents(entt::registry& registry) {
+    auto renderView = registry.view<SHV::OpenGl::RenderComponent>();
+    return renderView.size() == 0;
+}
+}  // namespace SHV::OpenGl::SRenderSystem
 
 OpenGl::RenderSystem::RenderSystem(entt::registry& registry)
     : System(registry) {}
@@ -31,4 +40,19 @@ void OpenGl::RenderSystem::AddRenderBatch(
         registry.emplace<SHV::OpenGl::RenderComponent>(entity);
     openGlRenderComponent.renderBatch =
         OpenGl::RenderBatch::Create(renderComponent.primitive);
+}
+
+void OpenGl::RenderSystem::SetUp() {
+    AssertD(OpenGl::SRenderSystem::IsRegistryEmptyFromBatchedRenderComponents(
+        registry));
+}
+
+void OpenGl::RenderSystem::TearDown() {
+    auto renderView = registry.view<SHV::OpenGl::RenderComponent>();
+
+    for (auto&& [entity, renderComponent] : renderView.each()) {
+        renderComponent.renderBatch.Release();
+    }
+
+    registry.clear<SHV::OpenGl::RenderComponent>();
 }

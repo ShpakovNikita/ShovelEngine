@@ -13,6 +13,9 @@ class RenderSystem : public ::SHV::System {
 
     virtual void Process(float dt);
 
+    virtual void SetUp();
+    virtual void TearDown();
+
    private:
     void AddRenderBatch(entt::entity& entity,
                         const SHV::RenderComponent& renderComponent);

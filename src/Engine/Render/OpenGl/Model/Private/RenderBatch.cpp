@@ -48,6 +48,8 @@ OpenGl::RenderBatch OpenGl::RenderBatch::Create(void* data, size_t vertexCount,
 }
 
 OpenGl::RenderBatch OpenGl::RenderBatch::Create(const Primitive& primitive) {
+    AssertD(primitive.material != nullptr);
+
     // TODO: some type smart refactor
     switch (primitive.material->materialShader) {
         case kBasicShader:

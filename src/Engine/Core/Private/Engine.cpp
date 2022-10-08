@@ -78,8 +78,8 @@ void Engine::SetUp() {
     imgui->SetUp();
 
     scene = std::make_unique<Scene>();
-    scene->SetUp();
     scene->AddSystem<OpenGl::RenderSystem>();
+    scene->SetUp();
 
     toolbar = std::make_unique<Toolbar>(*scene);
 
@@ -173,6 +173,8 @@ void Engine::LoadPrimitives() {
     primitive.positions = {{0, 1, 0, 1}, {-1, -1, 0, 1}, {1, -1, 0, 1}};
     primitive.normals = {{0, 1.0}, {0, 1.0}, {0, 1.0}};
     primitive.uvs = {{0, 0}, {0, 0}, {0, 0}};
+
+    primitive.indices = {1, 2, 3};
 
     auto& renderComponent = registry.emplace<RenderComponent>(entity);
     registry.emplace<TransformComponent>(entity);

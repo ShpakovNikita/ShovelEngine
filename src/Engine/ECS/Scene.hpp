@@ -26,6 +26,7 @@ class Scene {
     entt::registry& GetRegistry();
     const entt::registry& GetRegistry() const;
 
+    entt::entity& GetRootEntity();
     const entt::entity& GetRootEntity() const;
 
     template <class SystemType, typename... Args>
