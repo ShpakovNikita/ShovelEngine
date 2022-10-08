@@ -15,20 +15,22 @@ class LogicalDevice;
 class RenderBatch : public SHV::RenderBatch {
    public:
     ~RenderBatch();
+    RenderBatch();
 
-    static std::shared_ptr<RenderBatch> Create(void* data, size_t vertexCount,
-                                               size_t vertexLayoutSize);
+    static RenderBatch Create(void* data, size_t vertexCount,
+                              size_t vertexLayoutSize);
 
-    static std::shared_ptr<RenderBatch> Create(const Primitive& primitive);
+    static RenderBatch Create(const Primitive& primitive);
 
     inline size_t GetVertexCount() const { return vertexCount; }
     inline size_t GetVertexLayoutSize() const { return vertexLayoutSize; }
 
-    void Bind();
+    void Bind() const;
+    void Unbind() const;
+
+    void Release() const;
 
    private:
-    RenderBatch();
-
     GLuint vertexBufferObject;
     GLuint vertexArrayObject;
 

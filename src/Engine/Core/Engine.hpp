@@ -20,6 +20,9 @@ class Engine {
     int Run() noexcept;
 
    private:
+    void LoadPrimitives();
+    void UnloadPrimitives();
+
     void SetUp();
     void TearDown();
 

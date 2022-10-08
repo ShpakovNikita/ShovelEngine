@@ -33,31 +33,9 @@ void SHV::Metal::Renderer::SetUp() {
 
     commandQueue = std::make_unique<SHV::Metal::CommandQueue>(*device);
     commandQueue->SetUp();
-
-    // TODO: remove
-    LoadPrimitives();
-}
-
-void SHV::Metal::Renderer::LoadPrimitives() {
-    Material material = {SHV::eShader::kBasicShader};
-    Primitive primitive = {material};
-
-    primitive.positions = {{0, 1, 0, 1}, {-1, -1, 0, 1}, {1, -1, 0, 1}};
-    primitive.normals = {{0, 1.0}, {0, 1.0}, {0, 1.0}};
-    primitive.uvs = {{0, 0}, {0, 0}, {0, 0}};
-
-    renderBatch = SHV::Metal::RenderBatch::Create(*device, primitive);
-}
-
-void SHV::Metal::Renderer::UnloadPrimitives() {
-    AssertD(renderBatch.use_count() == 1);
-    renderBatch = nullptr;
 }
 
 void SHV::Metal::Renderer::TearDown() {
-    // TODO: remove
-    UnloadPrimitives();
-
     AssertD(commandQueue != nullptr);
     commandQueue->TearDown();
     commandQueue = nullptr;

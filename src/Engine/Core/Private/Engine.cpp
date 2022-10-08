@@ -13,8 +13,17 @@
 #include "Engine/Core/MutableConfig.hpp"
 #include "Engine/Render/ImGuiImpl.hpp"
 #include "Engine/Render/RenderContext.hpp"
+#include "Engine/Render/Model/Material.hpp"
+#include "Engine/Render/Model/Primitive.hpp"
 #include "Engine/Tools/Toolbar.hpp"
 #include "Engine/ECS/Scene.hpp"
+#include "Engine/ECS/Components/RenderComponent.hpp"
+#include "Engine/ECS/Components/TransformComponent.hpp"
+
+// TODO: remove
+#include "Engine/Render/OpenGl/ECS/Systems/RenderSystem.hpp"
+
+#include <entt/entity/registry.hpp>
 
 using namespace SHV;
 
@@ -69,11 +78,20 @@ void Engine::SetUp() {
     imgui->SetUp();
 
     scene = std::make_unique<Scene>();
+    scene->SetUp();
+    scene->AddSystem<OpenGl::RenderSystem>();
+
     toolbar = std::make_unique<Toolbar>(*scene);
+
+    LoadPrimitives();
 }
 
 void Engine::TearDown() {
+    UnloadPrimitives();
+
+    scene->TearDown();
     scene = nullptr;
+
     toolbar = nullptr;
 
     imgui->TearDown();
@@ -129,7 +147,7 @@ void Engine::PollEvents(float /* deltaTime */) {
     }
 }
 
-void Engine::UpdateSystems(float /* deltaTime */) {}
+void Engine::UpdateSystems(float deltaTime) { scene->Process(deltaTime); }
 
 void Engine::RenderLoop(float /* deltaTime */) {
     renderContext->GetRenderer().BeginFrame();
@@ -143,3 +161,23 @@ void Engine::RenderLoop(float /* deltaTime */) {
 }
 
 Engine::~Engine() = default;
+
+void Engine::LoadPrimitives() {
+    auto& registry = scene->GetRegistry();
+    auto entity = registry.create();
+
+    std::shared_ptr<Material> material = std::make_shared<Material>();
+    material->materialShader = SHV::eShader::kBasicShader;
+    Primitive primitive = {material};
+
+    primitive.positions = {{0, 1, 0, 1}, {-1, -1, 0, 1}, {1, -1, 0, 1}};
+    primitive.normals = {{0, 1.0}, {0, 1.0}, {0, 1.0}};
+    primitive.uvs = {{0, 0}, {0, 0}, {0, 0}};
+
+    auto& renderComponent = registry.emplace<RenderComponent>(entity);
+    registry.emplace<TransformComponent>(entity);
+
+    renderComponent.primitive = primitive;
+}
+
+void Engine::UnloadPrimitives() {}

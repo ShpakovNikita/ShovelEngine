@@ -37,7 +37,7 @@ std::shared_ptr<Metal::RenderBatch> Metal::RenderBatch::Create(
 std::shared_ptr<Metal::RenderBatch> Metal::RenderBatch::Create(
     Metal::LogicalDevice& device, const Primitive& primitive) {
     // TODO: some type smart refactor
-    switch (primitive.material.materialShader) {
+    switch (primitive.material->materialShader) {
         case kBasicShader:
             const size_t vertexCount = primitive.positions.size();
             std::vector<BasicVertexLayout> primitiveData;

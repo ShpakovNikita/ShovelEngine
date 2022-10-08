@@ -50,10 +50,6 @@ class Renderer : public ::SHV::Renderer {
     MTL::RenderCommandEncoder& GetRenderCommandEncoder() const;
 
    private:
-    // TODO: remove;
-    void LoadPrimitives();
-    void UnloadPrimitives();
-
     std::unique_ptr<LogicalDevice> device;
     std::unique_ptr<RenderPipeline> renderPipeline;
     std::unique_ptr<CommandQueue> commandQueue;

@@ -7,7 +7,6 @@
 #include "Engine/Common/Assert.hpp"
 #include "Engine/Common/Exception.hpp"
 #include "Engine/Render/Model/Material.hpp"
-#include "Engine/Render/Model/Primitive.hpp"
 #include "Engine/Render/OpenGl/Model/RenderBatch.hpp"
 #include "Engine/Render/OpenGl/ShaderProgram.hpp"
 #include "Engine/Render/OpenGl/Window.hpp"
@@ -15,6 +14,7 @@
 #include "Engine/ECS/Scene.hpp"
 #include "Engine/ECS/Components/RenderComponent.hpp"
 #include "Engine/ECS/Components/TransformComponent.hpp"
+#include "Engine/Render/OpenGl/ECS/Components/RenderComponent.hpp"
 
 SHV::OpenGl::Renderer::Renderer(SHV::OpenGl::Window& aWindow)
     : SHV::Renderer(), window(aWindow){};
@@ -44,13 +44,9 @@ void SHV::OpenGl::Renderer::SetUp() {
     AssertD(program == nullptr);
     program = std::make_unique<ShaderProgram>("BasicShader");
     program->SetUp();
-
-    LoadPrimitives();
 }
 
 void SHV::OpenGl::Renderer::TearDown() {
-    UnloadPrimitives();
-
     AssertD(program != nullptr);
     program->TearDown();
     program = nullptr;
@@ -61,22 +57,17 @@ void SHV::OpenGl::Renderer::Draw(const Scene& scene) {
         scene.GetRegistry()
             .view<SHV::RenderComponent, SHV::TransformComponent>();
 
-    // TODO: remove
-    {
-        program->Use();
-        renderBatch->Bind();
-        glDrawArrays(GL_TRIANGLES, 0, renderBatch->GetVertexCount());
-    }
-
     for (const auto& [entity, renderComponent, transformComponent] :
          renderView.each()) {
-        // TODO: Something logical
-        if (renderComponent.renderBatch ||
-            transformComponent.localTransform.length()) {
-            program->Use();
-            renderBatch->Bind();
-            glDrawArrays(GL_TRIANGLES, 0, renderBatch->GetVertexCount());
-        }
+        const auto& openGlRenderComponent =
+            scene.GetRegistry().try_get<SHV::OpenGl::RenderComponent>(entity);
+        AssertE(openGlRenderComponent != nullptr);
+
+        const auto& renderBatch = openGlRenderComponent->renderBatch;
+
+        program->Use();
+        renderBatch.Bind();
+        glDrawArrays(GL_TRIANGLES, 0, renderBatch.GetVertexCount());
     }
 }
 
@@ -103,20 +94,4 @@ std::optional<std::string> SHV::OpenGl::Renderer::ValidateExtensions() {
     //    if (!SDL_GL_ExtensionSupported("GL_ARB_enhanced_layouts")) {
     //        return "GL_ARB_enhanced_layouts";
     //    }
-}
-
-void SHV::OpenGl::Renderer::LoadPrimitives() {
-    Material material = {SHV::eShader::kBasicShader};
-    Primitive primitive = {material};
-
-    primitive.positions = {{0, 1, 0, 1}, {-1, -1, 0, 1}, {1, -1, 0, 1}};
-    primitive.normals = {{0, 1.0}, {0, 1.0}, {0, 1.0}};
-    primitive.uvs = {{0, 0}, {0, 0}, {0, 0}};
-
-    renderBatch = SHV::OpenGl::RenderBatch::Create(primitive);
-}
-
-void SHV::OpenGl::Renderer::UnloadPrimitives() {
-    AssertD(renderBatch.use_count() == 1);
-    renderBatch = nullptr;
 }

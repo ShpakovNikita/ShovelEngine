@@ -10,27 +10,20 @@ using namespace SHV;
 
 OpenGl::RenderBatch::RenderBatch() = default;
 
-OpenGl::RenderBatch::~RenderBatch() {
-    AssertD(vertexBufferObject != 0);
-    glDeleteBuffers(1, &vertexBufferObject);
+OpenGl::RenderBatch::~RenderBatch() = default;
 
-    AssertD(vertexArrayObject != 0);
-    glDeleteVertexArrays(1, &vertexArrayObject);
-}
-
-std::shared_ptr<OpenGl::RenderBatch> OpenGl::RenderBatch::Create(
-    void* data, size_t vertexCount, size_t vertexLayoutSize) {
-    auto renderBatch =
-        std::shared_ptr<OpenGl::RenderBatch>(new OpenGl::RenderBatch());
+OpenGl::RenderBatch OpenGl::RenderBatch::Create(void* data, size_t vertexCount,
+                                                size_t vertexLayoutSize) {
+    OpenGl::RenderBatch renderBatch;
 
     // const size_t dataSize = vertexCount * vertexLayoutSize;
 
-    glGenBuffers(1, &renderBatch->vertexBufferObject);
-    glGenVertexArrays(1, &renderBatch->vertexArrayObject);
+    glGenBuffers(1, &renderBatch.vertexBufferObject);
+    glGenVertexArrays(1, &renderBatch.vertexArrayObject);
 
-    glBindVertexArray(renderBatch->vertexArrayObject);
+    glBindVertexArray(renderBatch.vertexArrayObject);
 
-    glBindBuffer(GL_ARRAY_BUFFER, renderBatch->vertexBufferObject);
+    glBindBuffer(GL_ARRAY_BUFFER, renderBatch.vertexBufferObject);
     glBufferData(GL_ARRAY_BUFFER, vertexCount * vertexLayoutSize, data,
                  GL_STATIC_DRAW);
 
@@ -48,16 +41,15 @@ std::shared_ptr<OpenGl::RenderBatch> OpenGl::RenderBatch::Create(
                           (void*)(6 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
-    renderBatch->vertexCount = vertexCount;
-    renderBatch->vertexLayoutSize = vertexLayoutSize;
+    renderBatch.vertexCount = vertexCount;
+    renderBatch.vertexLayoutSize = vertexLayoutSize;
 
     return renderBatch;
 }
 
-std::shared_ptr<OpenGl::RenderBatch> OpenGl::RenderBatch::Create(
-    const Primitive& primitive) {
+OpenGl::RenderBatch OpenGl::RenderBatch::Create(const Primitive& primitive) {
     // TODO: some type smart refactor
-    switch (primitive.material.materialShader) {
+    switch (primitive.material->materialShader) {
         case kBasicShader:
             const size_t vertexCount = primitive.positions.size();
             std::vector<BasicVertexLayout> primitiveData;
@@ -78,7 +70,20 @@ std::shared_ptr<OpenGl::RenderBatch> OpenGl::RenderBatch::Create(
     }
 }
 
-void OpenGl::RenderBatch::Bind() {
+void OpenGl::RenderBatch::Bind() const {
     AssertD(vertexArrayObject != 0);
     glBindVertexArray(vertexArrayObject);
+}
+
+void OpenGl::RenderBatch::Unbind() const {
+    AssertD(vertexArrayObject != 0);
+    glBindVertexArray(0);
+}
+
+void OpenGl::RenderBatch::Release() const {
+    AssertD(vertexBufferObject != 0);
+    glDeleteBuffers(1, &vertexBufferObject);
+
+    AssertD(vertexArrayObject != 0);
+    glDeleteVertexArrays(1, &vertexArrayObject);
 }

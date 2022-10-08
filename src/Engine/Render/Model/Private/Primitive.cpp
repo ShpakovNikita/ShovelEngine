@@ -2,4 +2,9 @@
 
 #include "Engine/Render/Model/Material.hpp"
 
-SHV::Primitive::Primitive(const Material& aMaterial) : material(aMaterial) {}
+using namespace SHV;
+
+Primitive::Primitive() = default;
+
+Primitive::Primitive(std::shared_ptr<Material> aMaterial)
+    : material(aMaterial) {}

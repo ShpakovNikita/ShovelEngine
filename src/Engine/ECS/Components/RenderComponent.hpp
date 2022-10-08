@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Engine/Render/Model/RenderBatchHandle.h"
+#include "Engine/Render/Model/Primitive.hpp"
 
 namespace SHV {
 struct RenderComponent {
-    SHV::RenderBatchHandle renderBatch;
+    Primitive primitive;
 };
 }  // namespace SHV

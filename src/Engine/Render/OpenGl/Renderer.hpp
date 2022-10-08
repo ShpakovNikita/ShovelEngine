@@ -28,13 +28,8 @@ class Renderer : public SHV::Renderer {
     virtual void EndFrame();
 
    private:
-    // TODO: remove;
-    void LoadPrimitives();
-    void UnloadPrimitives();
-
     std::optional<std::string> ValidateExtensions();
 
-    std::shared_ptr<RenderBatch> renderBatch;
     std::unique_ptr<ShaderProgram> program;
 
     Window& window;

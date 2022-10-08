@@ -8,12 +8,13 @@ namespace SHV {
 struct Material;
 
 struct Primitive {
-    Primitive(const Material& material);
+    Primitive();
+    Primitive(std::shared_ptr<Material> material);
 
     std::vector<Uv> uvs;
     std::vector<Position> positions;
     std::vector<Normal> normals;
 
-    const Material& material;
+    std::shared_ptr<Material> material;
 };
 }  // namespace SHV
