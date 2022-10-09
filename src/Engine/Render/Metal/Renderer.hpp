@@ -40,6 +40,9 @@ class Renderer : public ::SHV::Renderer {
 
     virtual void Draw(const Scene& scene);
 
+    virtual void SetUpScene(Scene& scene);
+    virtual void TearDownScene(Scene& scene);
+
     virtual void BeginFrame();
     virtual void EndFrame();
 
@@ -53,8 +56,6 @@ class Renderer : public ::SHV::Renderer {
     std::unique_ptr<LogicalDevice> device;
     std::unique_ptr<RenderPipeline> renderPipeline;
     std::unique_ptr<CommandQueue> commandQueue;
-
-    std::shared_ptr<RenderBatch> renderBatch;
 
     NS::AutoreleasePool* drawPool = nullptr;
     MTL::RenderPassDescriptor* renderPassDescriptor = nullptr;

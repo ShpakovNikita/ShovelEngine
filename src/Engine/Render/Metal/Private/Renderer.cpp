@@ -12,7 +12,12 @@
 #include "Engine/Render/Metal/RenderPipeline.hpp"
 #include "Engine/Render/Metal/Window.hpp"
 #include "Engine/Render/Model/Material.hpp"
-#include "Engine/Render/Model/Primitive.hpp"
+
+#include "Engine/ECS/Scene.hpp"
+#include "Engine/Render/Metal/ECS/RenderBatcher.hpp"
+#include "Engine/Render/Metal/ECS/Components/RenderComponent.hpp"
+#include "Engine/Render/ECS/Systems/RenderSystem.hpp"
+
 #include "Metal/Metal.hpp"
 #include "QuartzCore/QuartzCore.hpp"
 
@@ -51,14 +56,44 @@ void SHV::Metal::Renderer::TearDown() {
     LogD(eTag::kMetalAPI) << "Metal Renderer teared down" << std::endl;
 }
 
+void SHV::Metal::Renderer::SetUpScene(Scene& scene) {
+    std::unique_ptr<SHV::RenderBatcher> renderBatcher =
+        std::make_unique<SHV::Metal::RenderBatcher>(*device);
+    scene.AddSystem<SHV::RenderSystem<SHV::Metal::RenderComponent>>(
+        std::move(renderBatcher));
+}
+
+void SHV::Metal::Renderer::TearDownScene(Scene& scene) {
+    scene.RemoveSystem<SHV::RenderSystem<SHV::Metal::RenderComponent>>();
+}
+
 void SHV::Metal::Renderer::Draw(const Scene& scene [[maybe_unused]]) {
-    renderCommandEncoder->setRenderPipelineState(
-        &renderPipeline->GetRenderPipelineState());
-    renderCommandEncoder->setVertexBuffer(&renderBatch->GetVertexBuffer(), 0,
-                                          0);
-    renderCommandEncoder->drawPrimitives(
-        MTL::PrimitiveType::PrimitiveTypeTriangle, 0,
-        renderBatch->GetVertexCount(), 1);
+    const auto renderView = scene.GetRegistry().view<SHV::RenderComponent>();
+
+    for (const auto& [entity, renderComponent] : renderView.each()) {
+        const auto& metalRenderComponent =
+            scene.GetRegistry().try_get<SHV::Metal::RenderComponent>(entity);
+        AssertE(metalRenderComponent != nullptr);
+
+        /*
+        const TransformComponent* transformComponent =
+            Entity::GetFirstComponentInHierarchy<TransformComponent>(
+                scene.GetRegistry(), entity);
+                */
+
+        const auto& renderBatch = metalRenderComponent->renderBatch;
+
+        renderCommandEncoder->setRenderPipelineState(
+            &renderPipeline->GetRenderPipelineState());
+
+        renderCommandEncoder->setVertexBuffer(&renderBatch.GetVertexBuffer(), 0,
+                                              0);
+
+        renderCommandEncoder->drawIndexedPrimitives(
+            MTL::PrimitiveType::PrimitiveTypeTriangle,
+            renderBatch.GetIndexCount(), MTL::IndexType::IndexTypeUInt32,
+            &renderBatch.GetIndexBuffer(), 0, 1);
+    }
 }
 
 void SHV::Metal::Renderer::BeginFrame() {

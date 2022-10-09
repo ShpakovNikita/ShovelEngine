@@ -1,7 +1,5 @@
 #include "Engine/ECS/Entity.hpp"
 
-#include "Engine/ECS/Components/RelationshipComponent.hpp"
-
 #include <entt/entt.hpp>
 
 using namespace SHV;

@@ -17,12 +17,14 @@ class RenderBatch : public SHV::RenderBatch {
     ~RenderBatch();
     RenderBatch();
 
-    static RenderBatch Create(void* data, size_t vertexCount,
-                              size_t vertexLayoutSize);
+    static RenderBatch Create(const void* data, size_t vertexCount,
+                              size_t vertexLayoutSize, const uint32_t* indices,
+                              size_t indexCount);
 
     static RenderBatch Create(const Primitive& primitive);
 
     inline size_t GetVertexCount() const { return vertexCount; }
+    inline size_t GetIndexCount() const { return indexCount; }
     inline size_t GetVertexLayoutSize() const { return vertexLayoutSize; }
 
     void Bind() const;
@@ -33,8 +35,10 @@ class RenderBatch : public SHV::RenderBatch {
    private:
     GLuint vertexBufferObject;
     GLuint vertexArrayObject;
+    GLuint elementBufferObject;
 
     size_t vertexCount;
+    size_t indexCount;
     size_t vertexLayoutSize;
 };
 }  // namespace OpenGl

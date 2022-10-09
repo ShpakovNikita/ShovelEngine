@@ -1,6 +1,7 @@
 #include "Engine/Render/Metal/Model/RenderBatch.hpp"
 
 #include <vector>
+#include <numeric>
 
 #include "Engine/Common/Assert.hpp"
 #include "Engine/Render/Metal/LogicalDevice.hpp"
@@ -12,30 +13,43 @@ using namespace SHV;
 
 Metal::RenderBatch::RenderBatch() = default;
 
-Metal::RenderBatch::~RenderBatch() {
-    AssertD(vertexBuffer != nullptr);
-    vertexBuffer->release();
-    vertexBuffer = nullptr;
-}
+Metal::RenderBatch::~RenderBatch() = default;
 
-std::shared_ptr<Metal::RenderBatch> Metal::RenderBatch::Create(
-    Metal::LogicalDevice& device, void* data, size_t vertexCount,
-    size_t vertexLayoutSize) {
-    auto renderBatch =
-        std::shared_ptr<Metal::RenderBatch>(new Metal::RenderBatch());
+Metal::RenderBatch Metal::RenderBatch::Create(Metal::LogicalDevice& device,
+                                              void* data, size_t vertexCount,
+                                              size_t vertexLayoutSize,
+                                              const uint32_t* indices,
+                                              size_t indexCount) {
+    Metal::RenderBatch renderBatch;
 
-    const size_t dataSize = vertexCount * vertexLayoutSize;
-    renderBatch->vertexBuffer = device.GetDevice().newBuffer(
-        data, dataSize, MTL::ResourceStorageModeManaged);
+    renderBatch.vertexBuffer = device.GetDevice().newBuffer(
+        data, vertexCount * vertexLayoutSize, MTL::ResourceStorageModeManaged);
 
-    renderBatch->vertexCount = vertexCount;
-    renderBatch->vertexLayoutSize = vertexLayoutSize;
+    renderBatch.vertexCount = vertexCount;
+    renderBatch.vertexLayoutSize = vertexLayoutSize;
+
+    if (indexCount > 0) {
+        renderBatch.indexBuffer =
+            device.GetDevice().newBuffer(indices, indexCount * sizeof(uint32_t),
+                                         MTL::ResourceStorageModeManaged);
+        renderBatch.indexCount = indexCount;
+    } else {
+        AssertD(vertexCount % 3 == 0);
+
+        std::vector<uint32_t> generatedIndices(vertexCount);
+        std::iota(generatedIndices.begin(), generatedIndices.end(), 0);
+
+        renderBatch.indexBuffer = device.GetDevice().newBuffer(
+            indices, generatedIndices.size() * sizeof(uint32_t),
+            MTL::ResourceStorageModeManaged);
+        renderBatch.indexCount = generatedIndices.size();
+    }
 
     return renderBatch;
 }
 
-std::shared_ptr<Metal::RenderBatch> Metal::RenderBatch::Create(
-    Metal::LogicalDevice& device, const Primitive& primitive) {
+Metal::RenderBatch Metal::RenderBatch::Create(Metal::LogicalDevice& device,
+                                              const Primitive& primitive) {
     // TODO: some type smart refactor
     switch (primitive.material->materialShader) {
         case kBasicShader:
@@ -53,10 +67,22 @@ std::shared_ptr<Metal::RenderBatch> Metal::RenderBatch::Create(
                                          primitive.uvs[i]});
             }
 
-            return Metal::RenderBatch::Create(device, primitiveData.data(),
-                                              vertexCount,
-                                              sizeof(BasicVertexLayout));
+            return Metal::RenderBatch::Create(
+                device, primitiveData.data(), vertexCount,
+                sizeof(BasicVertexLayout), primitive.indices.data(),
+                primitive.indices.size());
     }
+}
+
+void Metal::RenderBatch::Release() {
+    AssertD(indexBuffer != nullptr);
+    indexBuffer->release();
+    indexBuffer = nullptr;
+}
+
+MTL::Buffer& Metal::RenderBatch::GetIndexBuffer() const {
+    AssertD(indexBuffer != nullptr);
+    return *indexBuffer;
 }
 
 MTL::Buffer& Metal::RenderBatch::GetVertexBuffer() const {

@@ -16,26 +16,31 @@ class LogicalDevice;
 
 class RenderBatch : public SHV::RenderBatch {
    public:
+    RenderBatch();
     virtual ~RenderBatch();
 
-    static std::shared_ptr<RenderBatch> Create(LogicalDevice& device,
-                                               void* data, size_t vertexCount,
-                                               size_t vertexLayoutSize);
+    static RenderBatch Create(LogicalDevice& device, void* data,
+                              size_t vertexCount, size_t vertexLayoutSize,
+                              const uint32_t* indices, size_t indexCount);
 
-    static std::shared_ptr<RenderBatch> Create(LogicalDevice& device,
-                                               const Primitive& primitive);
+    static RenderBatch Create(LogicalDevice& device,
+                              const Primitive& primitive);
 
     inline size_t GetVertexCount() const { return vertexCount; }
+    inline size_t GetIndexCount() const { return indexCount; }
     inline size_t GetVertexLayoutSize() const { return vertexLayoutSize; }
 
+    MTL::Buffer& GetIndexBuffer() const;
     MTL::Buffer& GetVertexBuffer() const;
 
-   private:
-    RenderBatch();
+    void Release();
 
+   private:
+    MTL::Buffer* indexBuffer = nullptr;
     MTL::Buffer* vertexBuffer = nullptr;
 
     size_t vertexCount;
+    size_t indexCount;
     size_t vertexLayoutSize;
 };
 }  // namespace Metal

@@ -12,9 +12,11 @@
 #include "Engine/Render/OpenGl/Window.hpp"
 
 #include "Engine/ECS/Scene.hpp"
-#include "Engine/ECS/Components/RenderComponent.hpp"
-#include "Engine/ECS/Components/TransformComponent.hpp"
+#include "Engine/Render/ECS/Components/RenderComponent.hpp"
+
 #include "Engine/Render/OpenGl/ECS/Components/RenderComponent.hpp"
+#include "Engine/Render/OpenGl/ECS/RenderBatcher.hpp"
+#include "Engine/Render/ECS/Systems/RenderSystem.hpp"
 
 SHV::OpenGl::Renderer::Renderer(SHV::OpenGl::Window& aWindow)
     : SHV::Renderer(), window(aWindow){};
@@ -52,22 +54,38 @@ void SHV::OpenGl::Renderer::TearDown() {
     program = nullptr;
 }
 
-void SHV::OpenGl::Renderer::Draw(const Scene& scene) {
-    const auto renderView =
-        scene.GetRegistry()
-            .view<SHV::RenderComponent, SHV::TransformComponent>();
+void SHV::OpenGl::Renderer::SetUpScene(Scene& scene) {
+    std::unique_ptr<SHV::RenderBatcher> renderBatcher =
+        std::make_unique<SHV::OpenGl::RenderBatcher>();
+    scene.AddSystem<SHV::RenderSystem<SHV::OpenGl::RenderComponent>>(
+        std::move(renderBatcher));
+}
 
-    for (const auto& [entity, renderComponent, transformComponent] :
-         renderView.each()) {
+void SHV::OpenGl::Renderer::TearDownScene(Scene& scene) {
+    scene.RemoveSystem<SHV::RenderSystem<SHV::OpenGl::RenderComponent>>();
+}
+
+void SHV::OpenGl::Renderer::Draw(const Scene& scene) {
+    const auto renderView = scene.GetRegistry().view<SHV::RenderComponent>();
+
+    for (const auto& [entity, renderComponent] : renderView.each()) {
         const auto& openGlRenderComponent =
             scene.GetRegistry().try_get<SHV::OpenGl::RenderComponent>(entity);
         AssertE(openGlRenderComponent != nullptr);
+
+        /*
+        const TransformComponent* transformComponent =
+            Entity::GetFirstComponentInHierarchy<TransformComponent>(
+                scene.GetRegistry(), entity);
+                */
 
         const auto& renderBatch = openGlRenderComponent->renderBatch;
 
         program->Use();
         renderBatch.Bind();
-        glDrawArrays(GL_TRIANGLES, 0, renderBatch.GetVertexCount());
+        glDrawElements(GL_TRIANGLES, renderBatch.GetIndexCount(),
+                       GL_UNSIGNED_INT, 0);
+        renderBatch.Unbind();
     }
 }
 

@@ -3,6 +3,8 @@
 #include <entt/entity/registry.hpp>
 
 #include "Engine/ECS/System.hpp"
+#include "Engine/Common/Assert.hpp"
+#include "Engine/Common/Memory.hpp"
 
 #include <memory>
 #include <functional>
@@ -20,9 +22,6 @@ class Scene {
 
     void Process(float dt);
 
-    void SetUp();
-    void TearDown();
-
     entt::registry& GetRegistry();
     const entt::registry& GetRegistry() const;
 
@@ -31,6 +30,9 @@ class Scene {
 
     template <class SystemType, typename... Args>
     SystemType& AddSystem(Args&&... args);
+
+    template <class SystemType>
+    void RemoveSystem();
 
    private:
     void SceneGraphTraversal(
@@ -49,5 +51,17 @@ SystemType& SHV::Scene::AddSystem(Args&&... args) {
     std::unique_ptr<SystemType> system =
         std::make_unique<SystemType>(registry, std::forward<Args>(args)...);
     systems.push_back(std::move(system));
-    return static_cast<SystemType&>(*systems.back());
+    SystemType& systemRef = static_cast<SystemType&>(*systems.back());
+    systemRef.SetUp();
+    return systemRef;
+}
+
+template <class SystemType>
+void SHV::Scene::RemoveSystem() {
+    auto it = find_if(systems.begin(), systems.end(), [](const auto& system) {
+        return dynamic_cast<SystemType*>(system.get()) != nullptr;
+    });
+
+    AssertD(it != systems.end());
+    systems.erase(it);
 }

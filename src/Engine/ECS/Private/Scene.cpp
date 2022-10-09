@@ -10,19 +10,6 @@ void SHV::Scene::Process(float dt) {
                   [dt](const auto& system) { system->Process(dt); });
 }
 
-void SHV::Scene::SetUp() {
-    rootEntity = registry.create();
-    registry.emplace<RelationshipComponent>(rootEntity);
-
-    std::for_each(systems.begin(), systems.end(),
-                  [](const auto& system) { system->SetUp(); });
-}
-
-void SHV::Scene::TearDown() {
-    std::for_each(systems.begin(), systems.end(),
-                  [](const auto& system) { system->TearDown(); });
-}
-
 entt::registry& SHV::Scene::GetRegistry() { return registry; }
 const entt::registry& SHV::Scene::GetRegistry() const { return registry; }
 

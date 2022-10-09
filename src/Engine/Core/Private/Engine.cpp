@@ -17,13 +17,8 @@
 #include "Engine/Render/Model/Primitive.hpp"
 #include "Engine/Tools/Toolbar.hpp"
 #include "Engine/ECS/Scene.hpp"
-#include "Engine/ECS/Components/RenderComponent.hpp"
+#include "Engine/Render/ECS/Components/RenderComponent.hpp"
 #include "Engine/ECS/Components/TransformComponent.hpp"
-
-// TODO: remove
-#include "Engine/Render/OpenGl/ECS/Systems/RenderSystem.hpp"
-
-#include <entt/entity/registry.hpp>
 
 using namespace SHV;
 
@@ -78,8 +73,7 @@ void Engine::SetUp() {
     imgui->SetUp();
 
     scene = std::make_unique<Scene>();
-    scene->AddSystem<OpenGl::RenderSystem>();
-    scene->SetUp();
+    renderContext->GetRenderer().SetUpScene(*scene);
 
     toolbar = std::make_unique<Toolbar>(*scene);
 
@@ -89,7 +83,7 @@ void Engine::SetUp() {
 void Engine::TearDown() {
     UnloadPrimitives();
 
-    scene->TearDown();
+    renderContext->GetRenderer().TearDownScene(*scene);
     scene = nullptr;
 
     toolbar = nullptr;
@@ -170,11 +164,14 @@ void Engine::LoadPrimitives() {
     material->materialShader = SHV::eShader::kBasicShader;
     Primitive primitive = {material};
 
-    primitive.positions = {{0, 1, 0, 1}, {-1, -1, 0, 1}, {1, -1, 0, 1}};
-    primitive.normals = {{0, 1.0}, {0, 1.0}, {0, 1.0}};
-    primitive.uvs = {{0, 0}, {0, 0}, {0, 0}};
+    primitive.positions = {{0.5f, 0.5f, 0.0f, 1.0},
+                           {0.5f, -0.5f, 0.0f, 1},
+                           {-0.5f, -0.5f, 0.0f, 1},
+                           {-0.5f, 0.5f, 0.0f, 1}};
+    primitive.normals = {{0, 1.0}, {0, 1.0}, {0, 1.0}, {0, 1.0}};
+    primitive.uvs = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
 
-    primitive.indices = {0, 1, 2};
+    primitive.indices = {0, 1, 3, 1, 2, 3};
 
     auto& renderComponent = registry.emplace<RenderComponent>(entity);
     registry.emplace<TransformComponent>(entity);

@@ -7,7 +7,7 @@
 #include "tiny_gltf.h"
 
 #include "Engine/Render/Model/Material.hpp"
-#include "Engine/ECS/Components/RenderComponent.hpp"
+#include "Engine/Render/ECS/Components/RenderComponent.hpp"
 #include "Engine/ECS/Components/TransformComponent.hpp"
 #include "Engine/ECS/Scene.hpp"
 #include "Engine/ECS/Entity.hpp"
@@ -133,7 +133,7 @@ void FillPrimitiveVertices(Primitive& resultPrimitive,
 void FillPrimitiveIndices(Primitive& resultPrimitive,
                           const tinygltf::Primitive& primitive,
                           const tinygltf::Model& model) {
-    std::vector<size_t> indexBuffer;
+    std::vector<uint32_t> indexBuffer;
     indexBuffer.reserve(4096);
 
     const tinygltf::Accessor& accessor =
