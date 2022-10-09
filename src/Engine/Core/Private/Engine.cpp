@@ -174,7 +174,7 @@ void Engine::LoadPrimitives() {
     primitive.normals = {{0, 1.0}, {0, 1.0}, {0, 1.0}};
     primitive.uvs = {{0, 0}, {0, 0}, {0, 0}};
 
-    primitive.indices = {1, 2, 3};
+    primitive.indices = {0, 1, 2};
 
     auto& renderComponent = registry.emplace<RenderComponent>(entity);
     registry.emplace<TransformComponent>(entity);
