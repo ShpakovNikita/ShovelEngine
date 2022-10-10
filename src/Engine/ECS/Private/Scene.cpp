@@ -1,8 +1,14 @@
 #include "Engine/ECS/Scene.hpp"
 
 #include "Engine/ECS/Components/RelationshipComponent.hpp"
+#include "Engine/ECS/Components/CameraComponent.hpp"
+#include "Engine/ECS/Components/RootComponent.hpp"
+#include "Engine/ECS/Entity.hpp"
 
-SHV::Scene::Scene() = default;
+SHV::Scene::Scene() {
+    rootEntity = registry.create();
+    registry.emplace<RootComponent>(rootEntity);
+};
 SHV::Scene::~Scene() = default;
 
 void SHV::Scene::Process(float dt) {
@@ -18,18 +24,17 @@ const entt::entity& SHV::Scene::GetRootEntity() const { return rootEntity; }
 
 void SHV::Scene::SceneGraphTraversal(
     const std::function<void(entt::entity&)>& entityProcessor) {
-    SceneGraphTraversal(rootEntity, entityProcessor);
+    Entity::SceneGraphTraversal(registry, rootEntity, entityProcessor);
 }
 
-void SHV::Scene::SceneGraphTraversal(
-    entt::entity& entity,
-    const std::function<void(entt::entity&)>& entityProcessor) {
-    auto curr = entity;
+entt::entity SHV::Scene::GetEntityWithActiveCamera() const {
+    auto renderView = registry.view<SHV::CameraComponent>();
 
-    while (curr != entt::null) {
-        entityProcessor(curr);
-        SceneGraphTraversal(registry.get<RelationshipComponent>(curr).first,
-                            entityProcessor);
-        curr = registry.get<RelationshipComponent>(curr).next;
+    for (auto&& [entity, cameraComponent] : renderView.each()) {
+        if (cameraComponent.isActive) {
+            return entity;
+        }
     }
+
+    return entt::null;
 }

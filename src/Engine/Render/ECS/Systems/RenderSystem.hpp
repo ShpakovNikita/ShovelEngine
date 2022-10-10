@@ -49,6 +49,7 @@ void RenderSystem<RenderBatchComponent>::Process(float /*dt*/) {
             registry.try_get<RenderBatchComponent>(entity);
 
         if (openGlRenderComponent == nullptr) {
+            // TODO: Add batch creation to a separate thread
             renderBatcher->AddRenderBatch(registry, entity, renderComponent);
         }
     }

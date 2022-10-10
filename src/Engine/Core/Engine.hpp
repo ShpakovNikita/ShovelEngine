@@ -20,6 +20,8 @@ class Engine {
     int Run() noexcept;
 
    private:
+    void CreateCharacter();
+
     void CreateScene();
     void DestroyScene();
 

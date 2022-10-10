@@ -1,7 +1,3 @@
-//
-// Created by Mikita on 28.09.22.
-//
-
 #include "Engine/Render/OpenGl/ShaderProgram.hpp"
 
 #include <algorithm>
@@ -135,4 +131,10 @@ void SHV::OpenGl::ShaderProgram::TearDown() {
 void SHV::OpenGl::ShaderProgram::Use() {
     AssertD(program != 0);
     glUseProgram(program);
+}
+
+GLuint SHV::OpenGl::ShaderProgram::GetUniformLocation(
+    const std::string& uniformName) const {
+    AssertD(program != 0);
+    return glGetUniformLocation(program, uniformName.c_str());
 }

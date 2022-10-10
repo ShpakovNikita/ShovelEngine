@@ -10,11 +10,15 @@ struct Vertex {
 
 out Vertex vertex;
 
+uniform mat4 projection;
+uniform mat4 view;
+uniform mat4 model;
+
 void main()
 {
     vec4 pos = vec4(aPos.x, aPos.y, aPos.z, 1.0);
-    
+
     vertex.color = pos;
 
-    gl_Position = pos;
+    gl_Position = projection * view * model * pos;
 }

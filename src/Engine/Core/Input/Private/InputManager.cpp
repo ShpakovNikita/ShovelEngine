@@ -23,7 +23,7 @@ void InputManager::PollEvents(SDL_Event* event) {
                 SInputManager::kKeySDLToSHV.find(event->key.keysym.sym);
             if (keyIt != SInputManager::kKeySDLToSHV.end()) {
                 currentInput.pressedKeys[static_cast<size_t>(keyIt->second)] =
-                    false;
+                    true;
             }
             break;
         }
@@ -32,7 +32,7 @@ void InputManager::PollEvents(SDL_Event* event) {
                 SInputManager::kKeySDLToSHV.find(event->key.keysym.sym);
             if (keyIt != SInputManager::kKeySDLToSHV.end()) {
                 currentInput.pressedKeys[static_cast<size_t>(keyIt->second)] =
-                    true;
+                    false;
             }
             break;
         }

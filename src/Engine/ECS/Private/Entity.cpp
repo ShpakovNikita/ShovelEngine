@@ -1,5 +1,7 @@
 #include "Engine/ECS/Entity.hpp"
 
+#include "Engine/ECS/Components/TransformComponent.hpp"
+
 #include <entt/entt.hpp>
 
 using namespace SHV;
@@ -8,8 +10,11 @@ void Entity::AddChild(entt::registry& registry, entt::entity& parent,
                       entt::entity& child) {
     auto& parentRelationship =
         registry.get_or_emplace<RelationshipComponent>(parent);
+    // registry.get_or_emplace<TransformComponent>(parent);
+
     auto& childRelationship =
         registry.get_or_emplace<RelationshipComponent>(child);
+    // registry.get_or_emplace<TransformComponent>(child);
 
     childRelationship.parent = parent;
 
@@ -27,5 +32,19 @@ void Entity::AddChild(entt::registry& registry, entt::entity& parent,
 
         currRelationship.next = child;
         childRelationship.prev = currEntity;
+    }
+}
+
+void Entity::SceneGraphTraversal(
+    entt::registry& registry, entt::entity& entity,
+    const std::function<void(entt::entity&)>& entityProcessor) {
+    auto curr = entity;
+
+    while (curr != entt::null) {
+        entityProcessor(curr);
+        SceneGraphTraversal(registry,
+                            registry.get<RelationshipComponent>(curr).first,
+                            entityProcessor);
+        curr = registry.get<RelationshipComponent>(curr).next;
     }
 }

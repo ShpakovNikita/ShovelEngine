@@ -28,6 +28,8 @@ class Scene {
     entt::entity& GetRootEntity();
     const entt::entity& GetRootEntity() const;
 
+    entt::entity GetEntityWithActiveCamera() const;
+
     template <class SystemType, typename... Args>
     SystemType& AddSystem(Args&&... args);
 
@@ -35,10 +37,6 @@ class Scene {
     void RemoveSystem();
 
    private:
-    void SceneGraphTraversal(
-        entt::entity& entity,
-        const std::function<void(entt::entity&)>& entityProcessor);
-
     entt::registry registry;
     entt::entity rootEntity;
 

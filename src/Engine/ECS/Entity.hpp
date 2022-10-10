@@ -2,12 +2,18 @@
 
 #include <entt/entity/registry.hpp>
 
+#include <functional>
+
 #include "Engine/ECS/Components/RelationshipComponent.hpp"
 
 namespace SHV {
 namespace Entity {
 void AddChild(entt::registry& registry, entt::entity& parent,
               entt::entity& child);
+
+void SceneGraphTraversal(
+    entt::registry& registry, entt::entity& entity,
+    const std::function<void(entt::entity&)>& entityProcessor);
 
 template <typename Component>
 Component* GetFirstComponentInHierarchy(entt::registry& registry,

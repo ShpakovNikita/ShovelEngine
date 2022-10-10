@@ -14,6 +14,8 @@ class ShaderProgram {
 
     void Use();
 
+    GLuint GetUniformLocation(const std::string& uniformName) const;
+
    private:
     GLuint program;
 

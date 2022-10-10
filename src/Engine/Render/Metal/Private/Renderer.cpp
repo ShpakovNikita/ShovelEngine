@@ -11,12 +11,16 @@
 #include "Engine/Render/Metal/Model/RenderBatch.hpp"
 #include "Engine/Render/Metal/RenderPipeline.hpp"
 #include "Engine/Render/Metal/Window.hpp"
+#include "Engine/Render/Metal/Shaders/ShaderDefinitions.h"
 #include "Engine/Render/Model/Material.hpp"
 
 #include "Engine/ECS/Scene.hpp"
+#include "Engine/ECS/Entity.hpp"
+#include "Engine/ECS/Components/CameraComponent.hpp"
 #include "Engine/Render/Metal/ECS/RenderBatcher.hpp"
 #include "Engine/Render/Metal/ECS/Components/RenderComponent.hpp"
 #include "Engine/Render/ECS/Systems/RenderSystem.hpp"
+#include "Engine/Render/Metal/Utils/Math.hpp"
 
 #include "Metal/Metal.hpp"
 #include "QuartzCore/QuartzCore.hpp"
@@ -67,19 +71,35 @@ void SHV::Metal::Renderer::TearDownScene(Scene& scene) {
     scene.RemoveSystem<SHV::RenderSystem<SHV::Metal::RenderComponent>>();
 }
 
-void SHV::Metal::Renderer::Draw(const Scene& scene [[maybe_unused]]) {
+void SHV::Metal::Renderer::Draw(const Scene& scene) {
     const auto renderView = scene.GetRegistry().view<SHV::RenderComponent>();
+
+    auto cameraEntity = scene.GetEntityWithActiveCamera();
+    AssertE(cameraEntity != entt::null);
+
+    const auto& cameraComponent =
+        scene.GetRegistry().get<SHV::CameraComponent>(cameraEntity);
+    const auto& cameraTransform =
+        scene.GetRegistry().get<SHV::TransformComponent>(cameraEntity);
 
     for (const auto& [entity, renderComponent] : renderView.each()) {
         const auto& metalRenderComponent =
             scene.GetRegistry().try_get<SHV::Metal::RenderComponent>(entity);
         AssertE(metalRenderComponent != nullptr);
 
-        /*
         const TransformComponent* transformComponent =
             Entity::GetFirstComponentInHierarchy<TransformComponent>(
                 scene.GetRegistry(), entity);
-                */
+        AssertE(transformComponent != nullptr);
+
+        UniformsData uniformsData;
+        uniformsData.projection = GlmToSimdMatrix(cameraComponent.projection);
+        uniformsData.model =
+            GlmToSimdMatrix(transformComponent->GetLocalMatrix());
+        uniformsData.view = GlmToSimdMatrix(cameraTransform.GetLocalMatrix());
+
+        renderCommandEncoder->setVertexBytes(&uniformsData,
+                                             sizeof(uniformsData), 1);
 
         const auto& renderBatch = metalRenderComponent->renderBatch;
 

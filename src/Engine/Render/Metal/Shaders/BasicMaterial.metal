@@ -7,13 +7,13 @@ struct VertexOut {
     float4 pos [[position]];
 };
 
-vertex VertexOut basic_vertex(const device BasicVertexLayout *vertexArray [[buffer(0)]], unsigned int vid [[vertex_id]]) {
+vertex VertexOut basic_vertex(const device BasicVertexLayout *vertexArray [[buffer(0)]], const device UniformsData &uniformsData [[buffer(1)]], unsigned int vid [[vertex_id]]) {
   BasicVertexLayout in = vertexArray[vid];
 
   VertexOut out;
 
   out.color = in.pos;
-  out.pos = in.pos;
+  out.pos = uniformsData.projection * uniformsData.view * uniformsData.model * in.pos;
 
   return out;
 }

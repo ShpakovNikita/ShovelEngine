@@ -12,7 +12,9 @@
 #include "Engine/Render/OpenGl/Window.hpp"
 
 #include "Engine/ECS/Scene.hpp"
+#include "Engine/ECS/Entity.hpp"
 #include "Engine/Render/ECS/Components/RenderComponent.hpp"
+#include "Engine/ECS/Components/CameraComponent.hpp"
 
 #include "Engine/Render/OpenGl/ECS/Components/RenderComponent.hpp"
 #include "Engine/Render/OpenGl/ECS/RenderBatcher.hpp"
@@ -68,20 +70,41 @@ void SHV::OpenGl::Renderer::TearDownScene(Scene& scene) {
 void SHV::OpenGl::Renderer::Draw(const Scene& scene) {
     const auto renderView = scene.GetRegistry().view<SHV::RenderComponent>();
 
+    auto cameraEntity = scene.GetEntityWithActiveCamera();
+    AssertE(cameraEntity != entt::null);
+
+    const auto& cameraComponent =
+        scene.GetRegistry().get<SHV::CameraComponent>(cameraEntity);
+    const auto& cameraTransform =
+        scene.GetRegistry().get<SHV::TransformComponent>(cameraEntity);
+
     for (const auto& [entity, renderComponent] : renderView.each()) {
         const auto& openGlRenderComponent =
             scene.GetRegistry().try_get<SHV::OpenGl::RenderComponent>(entity);
         AssertE(openGlRenderComponent != nullptr);
 
-        /*
+        GLuint projectionUniformLocation =
+            program->GetUniformLocation("projection");
+        GLuint viewUniformLocation = program->GetUniformLocation("view");
+        GLuint modelUniformLocation = program->GetUniformLocation("model");
+
         const TransformComponent* transformComponent =
             Entity::GetFirstComponentInHierarchy<TransformComponent>(
                 scene.GetRegistry(), entity);
-                */
+        AssertE(transformComponent != nullptr);
 
         const auto& renderBatch = openGlRenderComponent->renderBatch;
 
         program->Use();
+
+        glUniformMatrix4fv(projectionUniformLocation, 1, GL_FALSE,
+                           glm::value_ptr(cameraComponent.projection));
+        glUniformMatrix4fv(
+            viewUniformLocation, 1, GL_FALSE,
+            glm::value_ptr(transformComponent->GetLocalMatrix()));
+        glUniformMatrix4fv(modelUniformLocation, 1, GL_FALSE,
+                           glm::value_ptr(cameraTransform.GetLocalMatrix()));
+
         renderBatch.Bind();
         glDrawElements(GL_TRIANGLES, renderBatch.GetIndexCount(),
                        GL_UNSIGNED_INT, 0);

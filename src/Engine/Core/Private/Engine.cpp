@@ -24,8 +24,16 @@
 #include "Engine/Tools/Toolbar.hpp"
 
 #include "Engine/ECS/Scene.hpp"
+#include "Engine/ECS/Entity.hpp"
+#include "Engine/ECS/Systems/CameraSystem.hpp"
 #include "Engine/ECS/Systems/InputSystem.hpp"
+#include "Engine/ECS/Systems/MovementSystem.hpp"
+#include "Engine/ECS/Systems/TransformSystem.hpp"
+
 #include "Engine/ECS/Components/TransformComponent.hpp"
+#include "Engine/ECS/Components/MovementComponent.hpp"
+#include "Engine/ECS/Components/CameraComponent.hpp"
+#include "Engine/ECS/Components/InputComponent.hpp"
 
 using namespace SHV;
 
@@ -80,6 +88,7 @@ void Engine::SetUp() {
     imgui->SetUp();
 
     CreateScene();
+    CreateCharacter();
 
     toolbar = std::make_unique<Toolbar>(*scene);
 }
@@ -189,6 +198,9 @@ void Engine::UnloadPrimitives() {}
 void Engine::CreateScene() {
     scene = std::make_unique<Scene>();
     scene->AddSystem<InputSystem>(renderContext->GetWindow().GetInputManager());
+    scene->AddSystem<MovementSystem>();
+    scene->AddSystem<TransformSystem>();
+    scene->AddSystem<CameraSystem>(renderContext->GetWindow());
 
     renderContext->GetRenderer().SetUpScene(*scene);
 
@@ -200,6 +212,21 @@ void Engine::DestroyScene() {
 
     renderContext->GetRenderer().TearDownScene(*scene);
 
+    scene->RemoveSystem<CameraSystem>();
+    scene->RemoveSystem<TransformSystem>();
+    scene->RemoveSystem<MovementSystem>();
     scene->RemoveSystem<InputSystem>();
     scene = nullptr;
+}
+
+void Engine::CreateCharacter() {
+    auto& registry = scene->GetRegistry();
+    auto character = registry.create();
+
+    registry.emplace<TransformComponent>(character);
+    registry.emplace<InputComponent>(character);
+    registry.emplace<MovementComponent>(character);
+    registry.emplace<CameraComponent>(character);
+
+    Entity::AddChild(registry, scene->GetRootEntity(), character);
 }
