@@ -20,6 +20,9 @@ class Engine {
     int Run() noexcept;
 
    private:
+    void CreateScene();
+    void DestroyScene();
+
     void LoadPrimitives();
     void UnloadPrimitives();
 

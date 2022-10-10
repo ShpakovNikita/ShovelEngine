@@ -9,15 +9,22 @@
 
 #include "Engine/Common/Exception.hpp"
 #include "Engine/Common/Logger.hpp"
+
 #include "Engine/Core/ImmutableConfig.hpp"
 #include "Engine/Core/MutableConfig.hpp"
+#include "Engine/Core/Window.hpp"
+#include "Engine/Core/Input/InputManager.hpp"
+
 #include "Engine/Render/ImGuiImpl.hpp"
 #include "Engine/Render/RenderContext.hpp"
 #include "Engine/Render/Model/Material.hpp"
 #include "Engine/Render/Model/Primitive.hpp"
-#include "Engine/Tools/Toolbar.hpp"
-#include "Engine/ECS/Scene.hpp"
 #include "Engine/Render/ECS/Components/RenderComponent.hpp"
+
+#include "Engine/Tools/Toolbar.hpp"
+
+#include "Engine/ECS/Scene.hpp"
+#include "Engine/ECS/Systems/InputSystem.hpp"
 #include "Engine/ECS/Components/TransformComponent.hpp"
 
 using namespace SHV;
@@ -72,19 +79,13 @@ void Engine::SetUp() {
     imgui = std::make_unique<ImGui>(*renderContext);
     imgui->SetUp();
 
-    scene = std::make_unique<Scene>();
-    renderContext->GetRenderer().SetUpScene(*scene);
+    CreateScene();
 
     toolbar = std::make_unique<Toolbar>(*scene);
-
-    LoadPrimitives();
 }
 
 void Engine::TearDown() {
-    UnloadPrimitives();
-
-    renderContext->GetRenderer().TearDownScene(*scene);
-    scene = nullptr;
+    DestroyScene();
 
     toolbar = nullptr;
 
@@ -137,6 +138,10 @@ void Engine::PollEvents(float /* deltaTime */) {
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
         imgui->PollEvents(&e);
+        if ((e.type == SDL_KEYDOWN || e.type == SDL_KEYUP) &&
+            e.key.windowID == renderContext->GetWindow().GetWindowID()) {
+            renderContext->GetWindow().GetInputManager().PollEvents(&e);
+        }
         if (e.type == SDL_QUIT) isRunning = false;
     }
 }
@@ -180,3 +185,21 @@ void Engine::LoadPrimitives() {
 }
 
 void Engine::UnloadPrimitives() {}
+
+void Engine::CreateScene() {
+    scene = std::make_unique<Scene>();
+    scene->AddSystem<InputSystem>(renderContext->GetWindow().GetInputManager());
+
+    renderContext->GetRenderer().SetUpScene(*scene);
+
+    LoadPrimitives();
+}
+
+void Engine::DestroyScene() {
+    UnloadPrimitives();
+
+    renderContext->GetRenderer().TearDownScene(*scene);
+
+    scene->RemoveSystem<InputSystem>();
+    scene = nullptr;
+}

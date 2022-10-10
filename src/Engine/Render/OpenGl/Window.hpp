@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Engine/Render/Window.hpp"
+#include "Engine/Core/Window.hpp"
 
 using SDL_GLContext = void*;
 

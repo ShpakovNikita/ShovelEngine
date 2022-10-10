@@ -1,9 +1,11 @@
-#include "Engine/Render/Window.hpp"
+#include "Engine/Core/Window.hpp"
 
 #include <SDL.h>
 
 #include "Engine/Common/Assert.hpp"
 #include "Engine/Common/Exception.hpp"
+
+#include "Engine/Core/Input/InputManager.hpp"
 
 using namespace SHV;
 
@@ -14,6 +16,12 @@ SDL_Window& Window::GetWindow() const {
     AssertD(window != nullptr);
 
     return *window;
+}
+
+uint32_t Window::GetWindowID() const {
+    AssertD(window != nullptr);
+
+    return SDL_GetWindowID(window);
 }
 
 void Window::SetUp() {
@@ -40,6 +48,8 @@ void Window::SetUp() {
                              SDL_GetError());
     }
 
+    inputManager = std::make_unique<InputManager>();
+
     OnSetUpComplete();
 }
 
@@ -48,10 +58,18 @@ void Window::TearDown() {
 
     OnTearDownBegin();
 
+    inputManager = nullptr;
+
     SDL_DestroyWindow(window);
 }
 
 const WindowConfig& Window::GetWindowConfig() const { return config; }
+
+InputManager& Window::GetInputManager() {
+    AssertD(inputManager != nullptr);
+
+    return *inputManager;
+}
 
 const glm::vec2 Window::GetWindowSize() const {
     int w, h;

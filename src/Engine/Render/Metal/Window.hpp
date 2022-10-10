@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Engine/Render/Window.hpp"
+#include "Engine/Core/Window.hpp"
 #include "SDL_metal.h"
 
 namespace CA {
