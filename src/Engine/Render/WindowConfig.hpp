@@ -12,8 +12,6 @@ struct WindowConfig {
 
     std::string name;
 
-    eRenderApi renderApi;
-
     glm::vec4 clearColor = {0.2f, 0.3f, 0.3f, 1.0f};
 };
 }  // namespace SHV

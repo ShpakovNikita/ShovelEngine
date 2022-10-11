@@ -1,5 +1,8 @@
 #include "Engine/Core/Engine.hpp"
 
+#include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
+
 #include <SDL.h>
 
 #include <chrono>
@@ -77,29 +80,23 @@ void Engine::SetUp() {
                         SDL_GetError());
     }
 
-    const WindowConfig windowConfig = {
-        immutableConfig.width, immutableConfig.height,
-        immutableConfig.windowName, immutableConfig.renderApi};
-    renderContext = std::make_unique<RenderContext>(windowConfig,
-                                                    immutableConfig.renderApi);
+    const WindowConfig windowConfig = {immutableConfig.width,
+                                       immutableConfig.height,
+                                       immutableConfig.windowName};
+    renderContext =
+        std::make_unique<RenderContext>(windowConfig, mutableConfig.renderApi);
     renderContext->SetUp();
-
-    imgui = std::make_unique<ImGui>(*renderContext);
-    imgui->SetUp();
 
     CreateScene();
     CreateCharacter();
 
-    toolbar = std::make_unique<Toolbar>(*scene);
+    toolbar = std::make_unique<Toolbar>(*scene, *this);
 }
 
 void Engine::TearDown() {
     DestroyScene();
 
     toolbar = nullptr;
-
-    imgui->TearDown();
-    imgui = nullptr;
 
     renderContext->TearDown();
     renderContext = nullptr;
@@ -138,15 +135,33 @@ void Engine::MainLoop() {
 }
 
 void Engine::Tick(float deltaTime) {
+    HandleMutableConfigChange();
+
     PollEvents(deltaTime);
     UpdateSystems(deltaTime);
     RenderLoop(deltaTime);
 }
 
+void Engine::HandleMutableConfigChange() {
+    if (newMutableConfig) {
+        // Switch render API
+        if (mutableConfig.renderApi != newMutableConfig.value().renderApi) {
+            renderContext->GetRenderer().TearDownScene(*scene);
+
+            renderContext->SwitchRenderApi(mutableConfig.renderApi);
+
+            renderContext->GetRenderer().SetUpScene(*scene);
+        }
+
+        mutableConfig = newMutableConfig.value();
+        newMutableConfig = std::nullopt;
+    }
+}
+
 void Engine::PollEvents(float /* deltaTime */) {
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
-        imgui->PollEvents(&e);
+        renderContext->GetImGui().PollEvents(&e);
         if ((e.type == SDL_KEYDOWN || e.type == SDL_KEYUP) &&
             e.key.windowID == renderContext->GetWindow().GetWindowID()) {
             renderContext->GetWindow().GetInputManager().PollEvents(&e);
@@ -159,41 +174,79 @@ void Engine::UpdateSystems(float deltaTime) { scene->Process(deltaTime); }
 
 void Engine::RenderLoop(float /* deltaTime */) {
     renderContext->GetRenderer().BeginFrame();
-    imgui->BeginFrame();
+    renderContext->GetImGui().BeginFrame();
 
     renderContext->GetRenderer().Draw(*scene);
     toolbar->Draw();
 
-    imgui->EndFrame();
+    renderContext->GetImGui().EndFrame();
     renderContext->GetRenderer().EndFrame();
 }
 
 Engine::~Engine() = default;
 
+const MutableConfig& Engine::GetMutableConfig() const { return mutableConfig; }
+
+void Engine::SetMutableConfig(MutableConfig& config) {
+    newMutableConfig = config;
+}
+
 void Engine::LoadPrimitives() {
     auto& registry = scene->GetRegistry();
-    auto entity = registry.create();
 
-    std::shared_ptr<Material> material = std::make_shared<Material>();
-    material->materialShader = SHV::eShader::kBasicShader;
-    Primitive primitive = {material};
+    /*
+    // Cube
+    {
+        auto entity = registry.create();
 
-    primitive.positions = {{0.5f, 0.5f, 0.0f, 1.0}, {0.5f, -0.5f, 0.0f, 1},
-                           {-0.5f, -0.5f, 0.0f, 1}, {-0.5f, 0.5f, 0.0f, 1},
-                           {0.5f, 0.5f, 1.0f, 1.0}, {0.5f, -0.5f, 1.0f, 1},
-                           {-0.5f, -0.5f, 1.0f, 1}, {-0.5f, 0.5f, 1.0f, 1}};
-    primitive.normals = {{0, 1.0}, {0, 1.0}, {0, 1.0}, {0, 1.0},
-                         {0, 1.0}, {0, 1.0}, {0, 1.0}, {0, 1.0}};
-    primitive.uvs = {{0, 0}, {0, 0}, {0, 0}, {0, 0},
-                     {0, 0}, {0, 0}, {0, 0}, {0, 0}};
+        std::shared_ptr<Material> material = std::make_shared<Material>();
+        material->materialShader = SHV::eShader::kBasicShader;
+        Primitive primitive = {material};
 
-    primitive.indices = {0, 1, 3, 1, 2, 3, 0, 1, 4, 1, 4, 5, 1, 5, 2, 2, 6, 5,
-                         2, 6, 7, 7, 3, 2, 3, 7, 0, 0, 7, 3, 4, 5, 7, 5, 6, 7};
+        primitive.positions = {{0.5f, 0.5f, 0.0f, 1.0}, {0.5f, -0.5f, 0.0f, 1},
+                               {-0.5f, -0.5f, 0.0f, 1}, {-0.5f, 0.5f, 0.0f, 1},
+                               {0.5f, 0.5f, 1.0f, 1.0}, {0.5f, -0.5f, 1.0f, 1},
+                               {-0.5f, -0.5f, 1.0f, 1}, {-0.5f, 0.5f, 1.0f, 1}};
+        primitive.normals = {{0, 1.0}, {0, 1.0}, {0, 1.0}, {0, 1.0},
+                             {0, 1.0}, {0, 1.0}, {0, 1.0}, {0, 1.0}};
+        primitive.uvs = {{0, 0}, {0, 0}, {0, 0}, {0, 0},
+                         {0, 0}, {0, 0}, {0, 0}, {0, 0}};
 
-    auto& renderComponent = registry.emplace<RenderComponent>(entity);
-    registry.emplace<TransformComponent>(entity);
+        primitive.indices = {0, 1, 3, 1, 2, 3, 0, 1, 4, 1, 4, 5,
+                             1, 5, 2, 2, 6, 5, 2, 6, 7, 7, 3, 2,
+                             3, 7, 0, 0, 7, 3, 4, 5, 7, 5, 6, 7};
 
-    renderComponent.primitive = primitive;
+        auto& renderComponent = registry.emplace<RenderComponent>(entity);
+        registry.emplace<TransformComponent>(entity);
+
+        renderComponent.primitive = primitive;
+    }
+     */
+
+    // Floor
+    {
+        auto entity = registry.create();
+
+        std::shared_ptr<Material> material = std::make_shared<Material>();
+        material->materialShader = SHV::eShader::kBasicShader;
+        Primitive primitive = {material};
+
+        primitive.positions = {{0.5f, 0.5f, 0.0f, 1.0},
+                               {0.5f, -0.5f, 0.0f, 1},
+                               {-0.5f, -0.5f, 0.0f, 1},
+                               {-0.5f, 0.5f, 0.0f, 1}};
+        primitive.normals = {{0, 1.0}, {0, 1.0}, {0, 1.0}, {0, 1.0}};
+        primitive.uvs = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
+
+        primitive.indices = {0, 1, 3, 1, 2, 3};
+
+        auto& renderComponent = registry.emplace<RenderComponent>(entity);
+        auto& transform = registry.emplace<TransformComponent>(entity);
+        transform.rotation =
+            glm::angleAxis(glm::radians(96.0f), glm::vec3(1.0f, 0.0, 0.0));
+
+        renderComponent.primitive = primitive;
+    }
 }
 
 void Engine::UnloadPrimitives() {}

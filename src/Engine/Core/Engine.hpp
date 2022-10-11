@@ -1,13 +1,17 @@
 #pragma once
 
 #include <memory>
+#include <optional>
+
+#include "Engine/Core/MutableConfig.hpp"
 
 namespace SHV {
+enum class eRenderApi;
+
 struct ImmutableConfig;
 struct MutableConfig;
 
 class RenderContext;
-class ImGui;
 class Toolbar;
 class Scene;
 
@@ -18,6 +22,9 @@ class Engine {
     ~Engine();
 
     int Run() noexcept;
+
+    const MutableConfig& GetMutableConfig() const;
+    void SetMutableConfig(MutableConfig& config);
 
    private:
     void CreateCharacter();
@@ -38,11 +45,14 @@ class Engine {
     void UpdateSystems(float deltaTime);
     void RenderLoop(float deltaTime);
 
+    void HandleMutableConfigChange();
+
     const ImmutableConfig& immutableConfig;
-    MutableConfig& mutableConfig;
+    
+    MutableConfig mutableConfig;
+    std::optional<MutableConfig> newMutableConfig;
 
     std::unique_ptr<RenderContext> renderContext;
-    std::unique_ptr<ImGui> imgui;
     std::unique_ptr<Toolbar> toolbar;
     std::unique_ptr<Scene> scene;
 

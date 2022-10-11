@@ -7,10 +7,12 @@
 #include <imgui_impl_metal.h>
 #include <imgui_impl_sdl.h>
 
+#include "Engine/Core/Window.hpp"
+
 #include "Engine/Render/Metal/Renderer.hpp"
 #include "Engine/Render/Metal/LogicalDevice.hpp"
-#include "Engine/Render/OpenGl/Window.hpp"
-#include "Engine/Render/Metal/Window.hpp"
+#include "Engine/Render/OpenGl/WindowContext.hpp"
+#include "Engine/Render/Metal/WindowContext.hpp"
 #include "Engine/Render/RenderContext.hpp"
 #include "Engine/Render/Renderer.hpp"
 
@@ -18,17 +20,18 @@ using namespace SHV;
 
 namespace SImGui {
 void SetUpMetalBackend(RenderContext& renderContext) {
-    auto& window = static_cast<Metal::Window&>(renderContext.GetWindow());
     auto& renderer = static_cast<Metal::Renderer&>(renderContext.GetRenderer());
 
     ImGui_ImplMetal_Init(&renderer.GetLogicalDevice().GetDevice());
-    ImGui_ImplSDL2_InitForMetal(&window.GetWindow());
+    ImGui_ImplSDL2_InitForMetal(&renderContext.GetWindow().GetWindow());
 }
 
 void SetUpOpenGlBackend(RenderContext& renderContext) {
-    auto& window = static_cast<OpenGl::Window&>(renderContext.GetWindow());
+    auto& windowContext =
+        static_cast<OpenGl::WindowContext&>(renderContext.GetWindowContext());
 
-    ImGui_ImplSDL2_InitForOpenGL(&window.GetWindow(), window.GetGlContext());
+    ImGui_ImplSDL2_InitForOpenGL(&renderContext.GetWindow().GetWindow(),
+                                 windowContext.GetGlContext());
     ImGui_ImplOpenGL3_Init("#version 330");
 }
 

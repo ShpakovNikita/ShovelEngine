@@ -4,13 +4,15 @@
 
 #include "Engine/Render/Metal/Renderer.hpp"
 
+#include "Engine/Core/Window.hpp"
+
 #include "Engine/Common/Assert.hpp"
 #include "Engine/Common/Logger.hpp"
 #include "Engine/Render/Metal/CommandQueue.hpp"
 #include "Engine/Render/Metal/LogicalDevice.hpp"
 #include "Engine/Render/Metal/Model/RenderBatch.hpp"
 #include "Engine/Render/Metal/RenderPipeline.hpp"
-#include "Engine/Render/Metal/Window.hpp"
+#include "Engine/Render/Metal/WindowContext.hpp"
 #include "Engine/Render/Metal/Shaders/ShaderDefinitions.h"
 #include "Engine/Render/Model/Material.hpp"
 
@@ -25,8 +27,8 @@
 #include "Metal/Metal.hpp"
 #include "QuartzCore/QuartzCore.hpp"
 
-SHV::Metal::Renderer::Renderer(Window& metalWindow)
-    : SHV::Renderer(), window(metalWindow){};
+SHV::Metal::Renderer::Renderer(WindowContext& aMetalWindowContext)
+    : SHV::Renderer(), windowContext(aMetalWindowContext){};
 SHV::Metal::Renderer::~Renderer() { AssertD(device == nullptr); }
 
 void SHV::Metal::Renderer::SetUp() {
@@ -34,7 +36,7 @@ void SHV::Metal::Renderer::SetUp() {
 
     device = std::make_unique<SHV::Metal::LogicalDevice>();
     device->SetUp();
-    device->AssignDeviceToWindow(window);
+    device->AssignDeviceToWindow(windowContext);
 
     renderPipeline = std::make_unique<SHV::Metal::RenderPipeline>(
         *device, "basic_vertex", "basic_fragment");
@@ -121,12 +123,13 @@ void SHV::Metal::Renderer::BeginFrame() {
     drawPool = NS::AutoreleasePool::alloc()->init();
 
     AssertD(surface == nullptr);
-    surface = window.NextDrawable();
+    surface = windowContext.NextDrawable();
 
-    MTL::ClearColor clear_color(window.GetWindowConfig().clearColor.r,
-                                window.GetWindowConfig().clearColor.g,
-                                window.GetWindowConfig().clearColor.b,
-                                window.GetWindowConfig().clearColor.a);
+    MTL::ClearColor clear_color(
+        windowContext.GetWindow().GetWindowConfig().clearColor.r,
+        windowContext.GetWindow().GetWindowConfig().clearColor.g,
+        windowContext.GetWindow().GetWindowConfig().clearColor.b,
+        windowContext.GetWindow().GetWindowConfig().clearColor.a);
     renderPassDescriptor = MTL::RenderPassDescriptor::alloc()->init();
     auto attachment = renderPassDescriptor->colorAttachments()->object(0);
     attachment->setClearColor(clear_color);

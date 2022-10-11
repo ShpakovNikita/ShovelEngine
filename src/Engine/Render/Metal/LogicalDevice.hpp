@@ -8,7 +8,7 @@ class Device;
 
 namespace SHV {
 namespace Metal {
-class Window;
+class WindowContext;
 
 class LogicalDevice {
    public:
@@ -17,7 +17,7 @@ class LogicalDevice {
     void SetUp();
     void TearDown();
 
-    void AssignDeviceToWindow(Window& metalWindow);
+    void AssignDeviceToWindow(WindowContext& metalWindow);
 
     MTL::Device& GetDevice() const;
 

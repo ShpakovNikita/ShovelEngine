@@ -12,7 +12,7 @@ CameraSystem::~CameraSystem() = default;
 
 void CameraSystem::Process(float /*dt*/) {
     auto renderView = registry.view<SHV::CameraComponent>();
-    const glm::vec2 viewportSize = window.GetViewportSize();
+    const glm::vec2 viewportSize = window.GetWindowSize();
 
     for (auto&& [entity, cameraComponent] : renderView.each()) {
         cameraComponent.projection = glm::perspective(

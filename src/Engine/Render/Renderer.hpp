@@ -6,7 +6,7 @@ namespace SHV {
 
 class Scene;
 
-enum eRenderApi {
+enum class eRenderApi {
     kMetal,
     kOpenGLES,
 };

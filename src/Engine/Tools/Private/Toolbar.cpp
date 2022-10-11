@@ -3,9 +3,12 @@
 #include "imgui.h"
 #include "ImGuiFileDialog.h"
 
+#include "Engine/Core/Engine.hpp"
+
 #include "Engine/ECS/Scene.hpp"
 #include "Engine/Tools/Scene/GltfSceneLoader.hpp"
 #include "Engine/Tools/Scene/HierarchyViewer.hpp"
+#include "Engine/Tools/Scene/CameraDataViewer.hpp"
 
 namespace SHV::SToolbar {
 std::string GetSampleModelsDir() {
@@ -17,10 +20,12 @@ std::string GetSampleModelsDir() {
 }
 }  // namespace SHV::SToolbar
 
-SHV::Toolbar::Toolbar(SHV::Scene& aScene)
+SHV::Toolbar::Toolbar(SHV::Scene& aScene, Engine& aEngine)
     : scene(aScene),
-      hierarchyViewer(std::make_unique<HierarchyViewer>(aScene.GetRegistry())) {
-}
+      engine(aEngine),
+      hierarchyViewer(std::make_unique<HierarchyViewer>(aScene.GetRegistry())),
+      cameraDataViewer(
+          std::make_unique<CameraDataViewer>(aScene.GetRegistry())) {}
 
 SHV::Toolbar::~Toolbar() {}
 
@@ -28,12 +33,17 @@ void SHV::Toolbar::Draw() {
     if (ImGui::BeginMainMenuBar()) {
         DrawFileMenu();
         DrawToolsMenu();
+        DrawEngineMenu();
 
         ImGui::EndMainMenuBar();
     }
 
     if (showHierarchyViewer) {
         hierarchyViewer->Draw(&showHierarchyViewer);
+    }
+
+    if (showCameraDataViewer) {
+        cameraDataViewer->Draw(&showCameraDataViewer);
     }
 
     // display
@@ -65,6 +75,25 @@ void SHV::Toolbar::DrawFileMenu() {
 void SHV::Toolbar::DrawToolsMenu() {
     if (ImGui::BeginMenu("Tools")) {
         ImGui::Checkbox("Hierarchy", &showHierarchyViewer);
+        ImGui::Checkbox("Camera Data", &showCameraDataViewer);
+        ImGui::EndMenu();
+    }
+}
+
+void SHV::Toolbar::DrawEngineMenu() {
+    if (ImGui::BeginMenu("Engine")) {
+        MutableConfig config = engine.GetMutableConfig();
+
+        if (ImGui::RadioButton("Metal Api",
+                               config.renderApi == eRenderApi::kMetal)) {
+            config.renderApi = eRenderApi::kMetal;
+            engine.SetMutableConfig(config);
+        }
+        if (ImGui::RadioButton("OpenGL ES",
+                               config.renderApi == eRenderApi::kOpenGLES)) {
+            config.renderApi = eRenderApi::kOpenGLES;
+            engine.SetMutableConfig(config);
+        }
         ImGui::EndMenu();
     }
 }

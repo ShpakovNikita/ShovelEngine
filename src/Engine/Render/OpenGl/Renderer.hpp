@@ -10,13 +10,13 @@
 
 namespace SHV::OpenGl {
 
-class Window;
+class WindowContext;
 class ShaderProgram;
 class RenderBatch;
 
 class Renderer : public SHV::Renderer {
    public:
-    Renderer(Window& window);
+    Renderer(WindowContext& window);
     virtual ~Renderer();
 
     virtual void SetUp();
@@ -35,7 +35,7 @@ class Renderer : public SHV::Renderer {
 
     std::unique_ptr<ShaderProgram> program;
 
-    Window& window;
+    WindowContext& windowContext;
 };
 
 }  // namespace SHV::OpenGl

@@ -7,7 +7,7 @@
 #include "Engine/Common/Assert.hpp"
 #include "Engine/Common/Logger.hpp"
 #include "Engine/Render/Metal/MetalBridge.hpp"
-#include "Engine/Render/Metal/Window.hpp"
+#include "Engine/Render/Metal/WindowContext.hpp"
 #include "Metal/Metal.hpp"
 
 using namespace SHV;
@@ -27,7 +27,7 @@ void Metal::LogicalDevice::TearDown() {
     LogD(eTag::kMetalAPI) << "Logical Device teared down" << std::endl;
 };
 
-void Metal::LogicalDevice::AssignDeviceToWindow(Window& metalWindow) {
+void Metal::LogicalDevice::AssignDeviceToWindow(WindowContext& metalWindow) {
     AssignMetalDevice(metalWindow.GetCAMetalLayer(), device);
 };
 

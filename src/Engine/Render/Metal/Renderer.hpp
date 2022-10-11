@@ -24,7 +24,7 @@ namespace SHV {
 
 namespace Metal {
 
-class Window;
+class WindowContext;
 class LogicalDevice;
 class RenderPipeline;
 class CommandQueue;
@@ -32,7 +32,7 @@ class RenderBatch;
 
 class Renderer : public ::SHV::Renderer {
    public:
-    Renderer(Window& metalWindow);
+    Renderer(WindowContext& metalWindowContext);
     virtual ~Renderer();
 
     virtual void SetUp();
@@ -63,7 +63,7 @@ class Renderer : public ::SHV::Renderer {
     MTL::RenderCommandEncoder* renderCommandEncoder = nullptr;
     CA::MetalDrawable* surface = nullptr;
 
-    Window& window;
+    WindowContext& windowContext;
 };
 }  // namespace Metal
 

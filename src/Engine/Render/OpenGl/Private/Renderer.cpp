@@ -4,12 +4,14 @@
 
 #include <entt/entity/registry.hpp>
 
+#include "Engine/Core/Window.hpp"
+
 #include "Engine/Common/Assert.hpp"
 #include "Engine/Common/Exception.hpp"
 #include "Engine/Render/Model/Material.hpp"
 #include "Engine/Render/OpenGl/Model/RenderBatch.hpp"
 #include "Engine/Render/OpenGl/ShaderProgram.hpp"
-#include "Engine/Render/OpenGl/Window.hpp"
+#include "Engine/Render/OpenGl/WindowContext.hpp"
 
 #include "Engine/ECS/Scene.hpp"
 #include "Engine/ECS/Entity.hpp"
@@ -20,8 +22,8 @@
 #include "Engine/Render/OpenGl/ECS/RenderBatcher.hpp"
 #include "Engine/Render/ECS/Systems/RenderSystem.hpp"
 
-SHV::OpenGl::Renderer::Renderer(SHV::OpenGl::Window& aWindow)
-    : SHV::Renderer(), window(aWindow){};
+SHV::OpenGl::Renderer::Renderer(SHV::OpenGl::WindowContext& aWindow)
+    : SHV::Renderer(), windowContext(aWindow){};
 
 SHV::OpenGl::Renderer::~Renderer() = default;
 
@@ -113,19 +115,19 @@ void SHV::OpenGl::Renderer::Draw(const Scene& scene) {
 }
 
 void SHV::OpenGl::Renderer::BeginFrame() {
-    const auto viewportSize = window.GetViewportSize();
+    const auto viewportSize = windowContext.GetViewportSize();
     glViewport(0, 0, viewportSize.x, viewportSize.y);
 
-    glClearColor(window.GetWindowConfig().clearColor.r,
-                 window.GetWindowConfig().clearColor.g,
-                 window.GetWindowConfig().clearColor.b,
-                 window.GetWindowConfig().clearColor.a);
+    glClearColor(windowContext.GetWindow().GetWindowConfig().clearColor.r,
+                 windowContext.GetWindow().GetWindowConfig().clearColor.g,
+                 windowContext.GetWindow().GetWindowConfig().clearColor.b,
+                 windowContext.GetWindow().GetWindowConfig().clearColor.a);
 
     glClear(GL_COLOR_BUFFER_BIT);
 };
 
 void SHV::OpenGl::Renderer::EndFrame() {
-    SDL_GL_SwapWindow(&window.GetWindow());
+    SDL_GL_SwapWindow(&windowContext.GetWindow().GetWindow());
 };
 
 std::optional<std::string> SHV::OpenGl::Renderer::ValidateExtensions() {

@@ -11,10 +11,10 @@ namespace SHV {
 
 class InputManager;
 
-class Window {
+class Window final {
    public:
     Window(const WindowConfig& config);
-    virtual ~Window();
+    ~Window();
 
     SDL_Window& GetWindow() const;
     uint32_t GetWindowID() const;
@@ -24,14 +24,10 @@ class Window {
 
     const WindowConfig& GetWindowConfig() const;
     const glm::vec2 GetWindowSize() const;
-    virtual const glm::vec2 GetViewportSize() const;
 
     InputManager& GetInputManager();
 
    private:
-    virtual void OnSetUpComplete(){};
-    virtual void OnTearDownBegin(){};
-
     SDL_Window* window = nullptr;
     const WindowConfig config;
 

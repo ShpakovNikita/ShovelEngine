@@ -61,5 +61,6 @@ void SHV::Scene::RemoveSystem() {
     });
 
     AssertD(it != systems.end());
+    (*it)->TearDown();
     systems.erase(it);
 }

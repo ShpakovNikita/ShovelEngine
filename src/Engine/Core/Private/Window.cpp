@@ -27,21 +27,10 @@ uint32_t Window::GetWindowID() const {
 void Window::SetUp() {
     AssertD(window == nullptr);
 
-    auto windowFlags = SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE;
-
-    switch (config.renderApi) {
-        case eRenderApi::kOpenGLES:
-            windowFlags |= SDL_WINDOW_OPENGL;
-            break;
-        case eRenderApi::kMetal:
-            windowFlags |= SDL_WINDOW_METAL;
-            break;
-    }
-
     // Create window
     window = SDL_CreateWindow(config.name.data(), SDL_WINDOWPOS_UNDEFINED,
                               SDL_WINDOWPOS_UNDEFINED, config.width,
-                              config.height, windowFlags);
+                              config.height, 0);
 
     if (window == nullptr) {
         throw SHV::Exception("Window could not be created! SDL_Error: %s\n",
@@ -49,14 +38,10 @@ void Window::SetUp() {
     }
 
     inputManager = std::make_unique<InputManager>();
-
-    OnSetUpComplete();
 }
 
 void Window::TearDown() {
     AssertD(window != nullptr);
-
-    OnTearDownBegin();
 
     inputManager = nullptr;
 
@@ -76,5 +61,3 @@ const glm::vec2 Window::GetWindowSize() const {
     SDL_GetWindowSize(window, &w, &h);
     return glm::vec2{w, h};
 }
-
-const glm::vec2 Window::GetViewportSize() const { return GetWindowSize(); }
