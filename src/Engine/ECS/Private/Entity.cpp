@@ -34,17 +34,3 @@ void Entity::AddChild(entt::registry& registry, entt::entity& parent,
         childRelationship.prev = currEntity;
     }
 }
-
-void Entity::SceneGraphTraversal(
-    entt::registry& registry, entt::entity& entity,
-    const std::function<void(entt::entity&)>& entityProcessor) {
-    auto curr = entity;
-
-    while (curr != entt::null) {
-        entityProcessor(curr);
-        SceneGraphTraversal(registry,
-                            registry.get<RelationshipComponent>(curr).first,
-                            entityProcessor);
-        curr = registry.get<RelationshipComponent>(curr).next;
-    }
-}

@@ -12,6 +12,8 @@ SHV::Scene::Scene() {
 SHV::Scene::~Scene() = default;
 
 void SHV::Scene::Process(float dt) {
+    AssertD(registry.view<RootComponent>().size() == 1);
+
     std::for_each(systems.begin(), systems.end(),
                   [dt](const auto& system) { system->Process(dt); });
 }
