@@ -25,5 +25,7 @@ class Renderer {
     virtual void Draw(const Scene& scene) = 0;
     virtual void BeginFrame(){};
     virtual void EndFrame(){};
+
+    virtual void WaitForFrameExecutionFinish(){};
 };
 }  // namespace SHV

@@ -4,10 +4,14 @@
 
 #include "Engine/Render/Metal/Renderer.hpp"
 
+#include <Tracy.hpp>
+
 #include "Engine/Core/Window.hpp"
 
 #include "Engine/Common/Assert.hpp"
+#include "Engine/Common/ProfilerSystems.hpp"
 #include "Engine/Common/Logger.hpp"
+
 #include "Engine/Render/Metal/CommandQueue.hpp"
 #include "Engine/Render/Metal/LogicalDevice.hpp"
 #include "Engine/Render/Metal/Model/RenderBatch.hpp"
@@ -56,6 +60,7 @@ void SHV::Metal::Renderer::TearDown() {
     renderPipeline = nullptr;
 
     AssertD(device != nullptr);
+    device->RemoveDeviceFromWindow(windowContext);
     device->TearDown();
     device = nullptr;
 
@@ -74,6 +79,10 @@ void SHV::Metal::Renderer::TearDownScene(Scene& scene) {
 }
 
 void SHV::Metal::Renderer::Draw(const Scene& scene) {
+    ZoneNamedN(
+        __tracy, "Metal Render Draw",
+        static_cast<bool>(kActiveProfilerSystems & ProfilerSystems::Rendering));
+
     const auto renderView = scene.GetRegistry().view<SHV::RenderComponent>();
 
     auto cameraEntity = scene.GetEntityWithActiveCamera();
@@ -119,6 +128,10 @@ void SHV::Metal::Renderer::Draw(const Scene& scene) {
 }
 
 void SHV::Metal::Renderer::BeginFrame() {
+    ZoneNamedN(
+        __tracy, "Metal Render BeginFrame",
+        static_cast<bool>(kActiveProfilerSystems & ProfilerSystems::Rendering));
+
     AssertD(drawPool == nullptr);
     drawPool = NS::AutoreleasePool::alloc()->init();
 
@@ -141,11 +154,38 @@ void SHV::Metal::Renderer::BeginFrame() {
         commandBuffer->renderCommandEncoder(renderPassDescriptor);
 }
 
+void SHV::Metal::Renderer::WaitForFrameExecutionFinish() {
+    ZoneNamedN(
+        __tracy, "Metal Render WaitForFrameExecutionFinish",
+        static_cast<bool>(kActiveProfilerSystems & ProfilerSystems::Rendering));
+
+    commandBuffer->waitUntilCompleted();
+    /*
+    std::unique_lock<std::mutex> lk(frameExecutionMutex);
+    frameExecutionCV.wait(lk,
+                          [this]() -> bool { return frameExecutionFinished; });
+                          */
+}
+
 void SHV::Metal::Renderer::EndFrame() {
+    ZoneNamedN(
+        __tracy, "Metal Render EndFrame",
+        static_cast<bool>(kActiveProfilerSystems & ProfilerSystems::Rendering));
+
     renderCommandEncoder->endEncoding();
 
     AssertD(surface != nullptr);
     commandBuffer->presentDrawable(surface);
+
+    /*
+    frameExecutionFinished = false;
+    commandBuffer->addCompletedHandler(
+        [this](MTL::CommandBuffer*) {
+            // Notify main thread
+            frameExecutionFinished = true;
+            frameExecutionCV.notify_one();
+        });*/
+
     commandBuffer->commit();
     surface = nullptr;
 

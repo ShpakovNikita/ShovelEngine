@@ -9,6 +9,8 @@
 #include <thread>
 
 #include <imgui.h>
+#include <TracySystem.hpp>
+#include <Tracy.hpp>
 
 #include "Engine/Common/Exception.hpp"
 #include "Engine/Common/Logger.hpp"
@@ -47,6 +49,8 @@ Engine::Engine(const ImmutableConfig& aImmutableConfig,
       renderContext(nullptr) {}
 
 int Engine::Run() noexcept {
+    tracy::SetThreadName("main");
+
     LogI(eTag::kEngine) << "Engine setup begin" << std::endl;
     try {
         SetUp();
@@ -111,35 +115,53 @@ void Engine::MainLoop() {
     LogI(eTag::kEngine) << "Engine starting main loop" << std::endl;
 
     auto previousTime = std::chrono::high_resolution_clock::now();
-    std::this_thread::sleep_for(std::chrono::microseconds(
-        static_cast<size_t>(minSecPerFrame * 1000.0f)));
 
     while (isRunning) {
-        auto currentTime = std::chrono::high_resolution_clock::now();
-        auto elapsedTime = currentTime - previousTime;
-        float deltaTime =
-            std::chrono::duration_cast<std::chrono::nanoseconds>(elapsedTime)
-                .count() /
-            (1000.0f * 1000.0f * 1000.0f);
+        {
+            ZoneScopedN("Frame Execution");
 
-        Tick(deltaTime);
+            auto currentTime = std::chrono::high_resolution_clock::now();
+            auto elapsedTime = currentTime - previousTime;
+            float deltaTime =
+                std::chrono::duration_cast<std::chrono::nanoseconds>(
+                    elapsedTime)
+                    .count() /
+                (1000.0f * 1000.0f * 1000.0f);
 
-        std::chrono::milliseconds timeToSleep(std::max(
-            0, static_cast<int>((minSecPerFrame - deltaTime) * 1000.0f)));
-        std::this_thread::sleep_for(timeToSleep);
+            Tick(deltaTime);
 
-        previousTime = currentTime;
+            std::chrono::milliseconds timeToSleep(std::max(
+                0, static_cast<int>((minSecPerFrame - deltaTime) * 1000.0f)));
+            std::this_thread::sleep_for(timeToSleep);
+
+            previousTime = currentTime;
+        }
+        FrameMark;
     }
 
     LogI(eTag::kEngine) << "Engine ended main loop" << std::endl;
 }
 
 void Engine::Tick(float deltaTime) {
-    HandleMutableConfigChange();
+    {
+        ZoneScopedN("Handle Mutable Config Change");
+        HandleMutableConfigChange();
+    }
 
-    PollEvents(deltaTime);
-    UpdateSystems(deltaTime);
-    RenderLoop(deltaTime);
+    {
+        ZoneScopedN("Poll Events");
+        PollEvents(deltaTime);
+    }
+
+    {
+        ZoneScopedN("Update Systems");
+        UpdateSystems(deltaTime);
+    }
+
+    {
+        ZoneScopedN("Render Frame");
+        RenderLoop(deltaTime);
+    }
 }
 
 void Engine::HandleMutableConfigChange() {
@@ -148,7 +170,7 @@ void Engine::HandleMutableConfigChange() {
         if (mutableConfig.renderApi != newMutableConfig.value().renderApi) {
             renderContext->GetRenderer().TearDownScene(*scene);
 
-            renderContext->SwitchRenderApi(mutableConfig.renderApi);
+            renderContext->SwitchRenderApi(newMutableConfig.value().renderApi);
 
             renderContext->GetRenderer().SetUpScene(*scene);
         }
@@ -177,10 +199,13 @@ void Engine::RenderLoop(float /* deltaTime */) {
     renderContext->GetImGui().BeginFrame();
 
     renderContext->GetRenderer().Draw(*scene);
+
     toolbar->Draw();
 
     renderContext->GetImGui().EndFrame();
     renderContext->GetRenderer().EndFrame();
+
+    renderContext->GetRenderer().WaitForFrameExecutionFinish();
 }
 
 Engine::~Engine() = default;

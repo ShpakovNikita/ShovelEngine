@@ -2,9 +2,12 @@
 
 #include <memory>
 
+#include <Tracy.hpp>
+
 #include "Engine/ECS/System.hpp"
 
 #include "Engine/Common/Assert.hpp"
+#include "Engine/Common/ProfilerSystems.hpp"
 
 #include "Engine/Render/ECS/Components/RenderComponent.hpp"
 #include "Engine/ECS/Components/TransformComponent.hpp"
@@ -40,6 +43,10 @@ RenderSystem<RenderBatchComponent>::~RenderSystem() = default;
 
 template <typename RenderBatchComponent>
 void RenderSystem<RenderBatchComponent>::Process(float /*dt*/) {
+    ZoneNamedN(
+        __tracy, "RenderSystem Process",
+        static_cast<bool>(kActiveProfilerSystems & ProfilerSystems::ECS));
+
     auto renderView =
         registry.view<SHV::RenderComponent, SHV::TransformComponent>();
 

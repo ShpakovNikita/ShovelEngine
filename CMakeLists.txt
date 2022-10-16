@@ -73,6 +73,13 @@ file(GLOB_RECURSE HEADER_FILES LIST_DIRECTORIES false
         )
 set(SOURCE_FILES ${SOURCE_FILES} ${HEADER_FILES} ${METAL_SHADERS})
 
+option(TRACY_ENABLE "" ON)
+option(TRACY_ON_DEMAND "" ON)
+
+add_subdirectory(external/tracy)
+
+include_directories(SYSTEM external/tracy/public/common)
+include_directories(SYSTEM external/tracy/public/tracy)
 include_directories(SYSTEM external/glm)
 include_directories(SYSTEM external/stb)
 include_directories(SYSTEM external/entt/src)
@@ -106,6 +113,7 @@ add_executable(${TARGET_NAME} ${SOURCE_FILES} ${METAL_SHADERS}) # ${ASSETS_DIR}
 
 source_group(TREE ${SOURCE_DIR} FILES ${SOURCE_FILES})
 
+target_link_libraries(${TARGET_NAME} Tracy::TracyClient)
 target_link_libraries(${TARGET_NAME} ${SDL2_LIBRARIES})
 target_link_libraries(${TARGET_NAME} imgui -objc)
 target_link_libraries(${TARGET_NAME} GLEW::GLEW)

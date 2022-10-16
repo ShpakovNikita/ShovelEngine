@@ -13,8 +13,15 @@ void Metal::AssignMetalDevice(void* layer, MTL::Device* device)
     metalLayer.device = (__bridge id<MTLDevice>)(device);
 }
 
+void Metal::RemoveMetalDevice(void* layer)
+{
+    CAMetalLayer* metalLayer = (CAMetalLayer*) layer;
+    metalLayer.device = nullptr;
+}
+
 CA::MetalDrawable* Metal::NextDrawable(void* layer) {
   CAMetalLayer* metalLayer = (CAMetalLayer*) layer;
+  metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm;
   id <CAMetalDrawable> metalDrawable = [metalLayer nextDrawable];
   CA::MetalDrawable* pMetalCppDrawable = ( __bridge CA::MetalDrawable*) metalDrawable;
   return pMetalCppDrawable;

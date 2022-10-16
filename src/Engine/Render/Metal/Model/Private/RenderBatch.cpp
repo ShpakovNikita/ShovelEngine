@@ -9,6 +9,9 @@
 #include "Engine/Render/Model/Primitive.hpp"
 #include "Metal/Metal.hpp"
 
+#include <Tracy.hpp>
+#include "Engine/Common/ProfilerSystems.hpp"
+
 using namespace SHV;
 
 Metal::RenderBatch::RenderBatch() = default;
@@ -50,6 +53,10 @@ Metal::RenderBatch Metal::RenderBatch::Create(Metal::LogicalDevice& device,
 
 Metal::RenderBatch Metal::RenderBatch::Create(Metal::LogicalDevice& device,
                                               const Primitive& primitive) {
+    ZoneNamedN(
+        __tracy, "Metal RenderBatch Create",
+        static_cast<bool>(kActiveProfilerSystems & ProfilerSystems::Rendering));
+
     // TODO: some type smart refactor
     switch (primitive.material->materialShader) {
         case kBasicShader:

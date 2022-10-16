@@ -19,10 +19,6 @@ class RenderBatch : public SHV::RenderBatch {
     RenderBatch();
     virtual ~RenderBatch();
 
-    static RenderBatch Create(LogicalDevice& device, void* data,
-                              size_t vertexCount, size_t vertexLayoutSize,
-                              const uint32_t* indices, size_t indexCount);
-
     static RenderBatch Create(LogicalDevice& device,
                               const Primitive& primitive);
 
@@ -36,6 +32,10 @@ class RenderBatch : public SHV::RenderBatch {
     void Release();
 
    private:
+    static RenderBatch Create(LogicalDevice& device, void* data,
+                              size_t vertexCount, size_t vertexLayoutSize,
+                              const uint32_t* indices, size_t indexCount);
+
     MTL::Buffer* indexBuffer = nullptr;
     MTL::Buffer* vertexBuffer = nullptr;
 

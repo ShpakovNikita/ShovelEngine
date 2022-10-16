@@ -4,10 +4,14 @@
 
 #include <entt/entity/registry.hpp>
 
+#include <Tracy.hpp>
+
 #include "Engine/Core/Window.hpp"
 
 #include "Engine/Common/Assert.hpp"
 #include "Engine/Common/Exception.hpp"
+#include "Engine/Common/ProfilerSystems.hpp"
+
 #include "Engine/Render/Model/Material.hpp"
 #include "Engine/Render/OpenGl/Model/RenderBatch.hpp"
 #include "Engine/Render/OpenGl/ShaderProgram.hpp"
@@ -69,7 +73,18 @@ void SHV::OpenGl::Renderer::TearDownScene(Scene& scene) {
     scene.RemoveSystem<SHV::RenderSystem<SHV::OpenGl::RenderComponent>>();
 }
 
+void SHV::OpenGl::Renderer::WaitForFrameExecutionFinish() {
+    ZoneNamedN(
+        __tracy, "OpenGl Render WaitForFrameExecutionFinish",
+        static_cast<bool>(kActiveProfilerSystems & ProfilerSystems::Rendering));
+    glFinish();
+}
+
 void SHV::OpenGl::Renderer::Draw(const Scene& scene) {
+    ZoneNamedN(
+        __tracy, "OpenGl Render Draw",
+        static_cast<bool>(kActiveProfilerSystems & ProfilerSystems::Rendering));
+
     const auto renderView = scene.GetRegistry().view<SHV::RenderComponent>();
 
     auto cameraEntity = scene.GetEntityWithActiveCamera();
@@ -115,6 +130,10 @@ void SHV::OpenGl::Renderer::Draw(const Scene& scene) {
 }
 
 void SHV::OpenGl::Renderer::BeginFrame() {
+    ZoneNamedN(
+        __tracy, "OpenGl Render BeginFrame",
+        static_cast<bool>(kActiveProfilerSystems & ProfilerSystems::Rendering));
+
     const auto viewportSize = windowContext.GetViewportSize();
     glViewport(0, 0, viewportSize.x, viewportSize.y);
 
@@ -127,6 +146,10 @@ void SHV::OpenGl::Renderer::BeginFrame() {
 };
 
 void SHV::OpenGl::Renderer::EndFrame() {
+    ZoneNamedN(
+        __tracy, "OpenGl Render EndFrame",
+        static_cast<bool>(kActiveProfilerSystems & ProfilerSystems::Rendering));
+
     SDL_GL_SwapWindow(&windowContext.GetWindow().GetWindow());
 };
 

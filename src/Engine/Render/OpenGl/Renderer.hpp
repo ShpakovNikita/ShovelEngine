@@ -30,6 +30,8 @@ class Renderer : public SHV::Renderer {
     virtual void BeginFrame();
     virtual void EndFrame();
 
+    virtual void WaitForFrameExecutionFinish();
+
    private:
     std::optional<std::string> ValidateExtensions();
 

@@ -4,6 +4,9 @@
 
 #include "Engine/Render/Renderer.hpp"
 
+#include <condition_variable>
+#include <thread>
+
 namespace MTL {
 class Device;
 class Buffer;
@@ -52,6 +55,8 @@ class Renderer : public ::SHV::Renderer {
     MTL::CommandBuffer& GetCommandBuffer() const;
     MTL::RenderCommandEncoder& GetRenderCommandEncoder() const;
 
+    virtual void WaitForFrameExecutionFinish();
+
    private:
     std::unique_ptr<LogicalDevice> device;
     std::unique_ptr<RenderPipeline> renderPipeline;
@@ -64,6 +69,10 @@ class Renderer : public ::SHV::Renderer {
     CA::MetalDrawable* surface = nullptr;
 
     WindowContext& windowContext;
+
+    std::condition_variable frameExecutionCV;
+    std::mutex frameExecutionMutex;
+    std::atomic<bool> frameExecutionFinished = false;
 };
 }  // namespace Metal
 

@@ -7,6 +7,9 @@
 #include "Engine/Render/Model/Material.hpp"
 #include "Engine/Render/Model/Primitive.hpp"
 
+#include <Tracy.hpp>
+#include "Engine/Common/ProfilerSystems.hpp"
+
 using namespace SHV;
 
 OpenGl::RenderBatch::RenderBatch() = default;
@@ -69,6 +72,10 @@ OpenGl::RenderBatch OpenGl::RenderBatch::Create(const void* data,
 }
 
 OpenGl::RenderBatch OpenGl::RenderBatch::Create(const Primitive& primitive) {
+    ZoneNamedN(
+        __tracy, "OpenGl RenderBatch Create",
+        static_cast<bool>(kActiveProfilerSystems & ProfilerSystems::Rendering));
+
     AssertD(primitive.material != nullptr);
 
     // TODO: some type smart refactor

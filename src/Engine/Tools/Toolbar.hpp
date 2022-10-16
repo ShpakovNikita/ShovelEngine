@@ -7,6 +7,7 @@ class Scene;
 class Engine;
 class HierarchyViewer;
 class CameraDataViewer;
+class ProfilersWindow;
 
 class Toolbar {
    public:
@@ -28,5 +29,8 @@ class Toolbar {
 
     bool showCameraDataViewer = false;
     std::unique_ptr<CameraDataViewer> cameraDataViewer;
+
+    bool showProfilersDataViewer = false;
+    std::unique_ptr<ProfilersWindow> profilersDataViewer;
 };
 }  // namespace SHV

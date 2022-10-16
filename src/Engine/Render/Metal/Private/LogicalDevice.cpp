@@ -27,6 +27,10 @@ void Metal::LogicalDevice::TearDown() {
     LogD(eTag::kMetalAPI) << "Logical Device teared down" << std::endl;
 };
 
+void Metal::LogicalDevice::RemoveDeviceFromWindow(WindowContext& metalWindow) {
+    RemoveMetalDevice(metalWindow.GetCAMetalLayer());
+};
+
 void Metal::LogicalDevice::AssignDeviceToWindow(WindowContext& metalWindow) {
     AssignMetalDevice(metalWindow.GetCAMetalLayer(), device);
 };

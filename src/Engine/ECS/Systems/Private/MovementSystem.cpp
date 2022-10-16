@@ -5,9 +5,16 @@
 #include "Engine/ECS/Components/TransformComponent.hpp"
 #include "Engine/ECS/Components/CameraComponent.hpp"
 
+#include <Tracy.hpp>
+#include "Engine/Common/ProfilerSystems.hpp"
+
 using namespace SHV;
 
 void MovementSystem::Process(float dt) {
+    ZoneNamedN(
+        __tracy, "MovementSystem Process",
+        static_cast<bool>(kActiveProfilerSystems & ProfilerSystems::ECS));
+
     auto renderView =
         registry.view<SHV::InputComponent, SHV::MovementComponent,
                       SHV::CameraComponent, SHV::TransformComponent>();

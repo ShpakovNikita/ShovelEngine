@@ -9,6 +9,7 @@
 #include "Engine/Tools/Scene/GltfSceneLoader.hpp"
 #include "Engine/Tools/Scene/HierarchyViewer.hpp"
 #include "Engine/Tools/Scene/CameraDataViewer.hpp"
+#include "Engine/Tools/Profiling/ImGuiProfilerRenderer.hpp"
 
 namespace SHV::SToolbar {
 std::string GetSampleModelsDir() {
@@ -25,7 +26,8 @@ SHV::Toolbar::Toolbar(SHV::Scene& aScene, Engine& aEngine)
       engine(aEngine),
       hierarchyViewer(std::make_unique<HierarchyViewer>(aScene.GetRegistry())),
       cameraDataViewer(
-          std::make_unique<CameraDataViewer>(aScene.GetRegistry())) {}
+          std::make_unique<CameraDataViewer>(aScene.GetRegistry())),
+      profilersDataViewer(std::make_unique<ProfilersWindow>()) {}
 
 SHV::Toolbar::~Toolbar() {}
 
@@ -76,6 +78,7 @@ void SHV::Toolbar::DrawToolsMenu() {
     if (ImGui::BeginMenu("Tools")) {
         ImGui::Checkbox("Hierarchy", &showHierarchyViewer);
         ImGui::Checkbox("Camera Data", &showCameraDataViewer);
+        ImGui::Checkbox("Profilers Data", &showProfilersDataViewer);
         ImGui::EndMenu();
     }
 }

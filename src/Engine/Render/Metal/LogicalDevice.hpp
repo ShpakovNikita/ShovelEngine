@@ -18,6 +18,7 @@ class LogicalDevice {
     void TearDown();
 
     void AssignDeviceToWindow(WindowContext& metalWindow);
+    void RemoveDeviceFromWindow(WindowContext& metalWindow);
 
     MTL::Device& GetDevice() const;
 

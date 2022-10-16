@@ -46,11 +46,11 @@ void SHV::RenderContext::SwitchRenderApi(const eRenderApi& aRenderApi) {
         AssertD(renderer != nullptr);
         AssertD(windowContext != nullptr);
 
-        renderApi = aRenderApi;
-
         imGui->TearDown();
         renderer->TearDown();
         windowContext->TearDown();
+
+        renderApi = aRenderApi;
 
         switch (renderApi) {
             case eRenderApi::kMetal:
@@ -72,7 +72,9 @@ const SHV::eRenderApi& SHV::RenderContext::GetRenderApi() const {
 }
 
 void SHV::RenderContext::SetUp() {
-    // Create window
+    window = std::make_unique<Window>(windowConfig);
+
+    // Create renderer and window context
     switch (renderApi) {
         case eRenderApi::kMetal:
             CreateMetalApiContext();
@@ -108,14 +110,12 @@ void SHV::RenderContext::TearDown() {
 }
 
 void SHV::RenderContext::CreateMetalApiContext() {
-    window = std::make_unique<Window>(windowConfig);
     windowContext = std::make_unique<Metal::WindowContext>(*window);
     renderer = std::make_unique<Metal::Renderer>(
         *static_cast<Metal::WindowContext*>(windowContext.get()));
 }
 
 void SHV::RenderContext::CreateOpenGlContext() {
-    window = std::make_unique<Window>(windowConfig);
     windowContext = std::make_unique<OpenGl::WindowContext>(*window);
     renderer = std::make_unique<OpenGl::Renderer>(
         *static_cast<OpenGl::WindowContext*>(windowContext.get()));

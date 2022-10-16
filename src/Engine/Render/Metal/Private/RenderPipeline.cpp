@@ -35,7 +35,7 @@ void Metal::RenderPipeline::SetUp() {
     pipelineStateDescriptor->setVertexFunction(vertexProgram);
     pipelineStateDescriptor->setFragmentFunction(fragmentProgram);
     pipelineStateDescriptor->colorAttachments()->object(0)->setPixelFormat(
-        MTL::PixelFormat::PixelFormatBGRA8Unorm_sRGB);
+        MTL::PixelFormat::PixelFormatBGRA8Unorm);
 
     NS::Error* error = nullptr;
     pipelineState = logicalDevice.GetDevice().newRenderPipelineState(

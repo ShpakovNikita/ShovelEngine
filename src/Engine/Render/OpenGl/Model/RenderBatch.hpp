@@ -17,10 +17,6 @@ class RenderBatch : public SHV::RenderBatch {
     ~RenderBatch();
     RenderBatch();
 
-    static RenderBatch Create(const void* data, size_t vertexCount,
-                              size_t vertexLayoutSize, const uint32_t* indices,
-                              size_t indexCount);
-
     static RenderBatch Create(const Primitive& primitive);
 
     inline size_t GetVertexCount() const { return vertexCount; }
@@ -33,6 +29,10 @@ class RenderBatch : public SHV::RenderBatch {
     void Release() const;
 
    private:
+    static RenderBatch Create(const void* data, size_t vertexCount,
+                              size_t vertexLayoutSize, const uint32_t* indices,
+                              size_t indexCount);
+
     GLuint vertexBufferObject;
     GLuint vertexArrayObject;
     GLuint elementBufferObject;
