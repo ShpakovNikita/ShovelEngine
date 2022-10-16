@@ -17,7 +17,7 @@ class ShaderProgram {
     GLuint GetUniformLocation(const std::string& uniformName) const;
 
    private:
-    GLuint program;
+    GLuint program = 0;
 
     std::string vertexShaderPath;
     std::string fragmentShaderPath;

@@ -4,7 +4,8 @@
 
 #include <imgui.h>
 #include <imgui_impl_opengl3.h>
-#include <imgui_impl_metal.h>
+// Forked backend impl with some tweaks
+#include <Engine/Render/Metal/ImGui/imgui_impl_metal.h>
 #include <imgui_impl_sdl.h>
 
 #include "Engine/Core/Window.hpp"

@@ -4,7 +4,7 @@
 
 #include "Engine/Render/Renderer.hpp"
 
-#include <condition_variable>
+#include <semaphore>
 #include <thread>
 
 namespace MTL {
@@ -70,9 +70,7 @@ class Renderer : public ::SHV::Renderer {
 
     WindowContext& windowContext;
 
-    std::condition_variable frameExecutionCV;
-    std::mutex frameExecutionMutex;
-    std::atomic<bool> frameExecutionFinished = false;
+    std::counting_semaphore<3> frameBufferingSemaphore{0};
 };
 }  // namespace Metal
 

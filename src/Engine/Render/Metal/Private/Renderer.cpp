@@ -138,18 +138,21 @@ void SHV::Metal::Renderer::BeginFrame() {
     AssertD(surface == nullptr);
     surface = windowContext.NextDrawable();
 
-    MTL::ClearColor clear_color(
+    MTL::ClearColor clearColor(
         windowContext.GetWindow().GetWindowConfig().clearColor.r,
         windowContext.GetWindow().GetWindowConfig().clearColor.g,
         windowContext.GetWindow().GetWindowConfig().clearColor.b,
         windowContext.GetWindow().GetWindowConfig().clearColor.a);
     renderPassDescriptor = MTL::RenderPassDescriptor::alloc()->init();
     auto attachment = renderPassDescriptor->colorAttachments()->object(0);
-    attachment->setClearColor(clear_color);
+    attachment->setClearColor(clearColor);
     attachment->setLoadAction(MTL::LoadActionClear);
     attachment->setTexture(surface->texture());
 
     commandBuffer = commandQueue->GetCommandQueue().commandBuffer();
+    commandBuffer->addCompletedHandler([this](MTL::CommandBuffer* /*buffer*/) {
+        frameBufferingSemaphore.release();
+    });
     renderCommandEncoder =
         commandBuffer->renderCommandEncoder(renderPassDescriptor);
 }
@@ -159,12 +162,7 @@ void SHV::Metal::Renderer::WaitForFrameExecutionFinish() {
         __tracy, "Metal Render WaitForFrameExecutionFinish",
         static_cast<bool>(kActiveProfilerSystems & ProfilerSystems::Rendering));
 
-    commandBuffer->waitUntilCompleted();
-    /*
-    std::unique_lock<std::mutex> lk(frameExecutionMutex);
-    frameExecutionCV.wait(lk,
-                          [this]() -> bool { return frameExecutionFinished; });
-                          */
+    frameBufferingSemaphore.acquire();
 }
 
 void SHV::Metal::Renderer::EndFrame() {
@@ -176,15 +174,6 @@ void SHV::Metal::Renderer::EndFrame() {
 
     AssertD(surface != nullptr);
     commandBuffer->presentDrawable(surface);
-
-    /*
-    frameExecutionFinished = false;
-    commandBuffer->addCompletedHandler(
-        [this](MTL::CommandBuffer*) {
-            // Notify main thread
-            frameExecutionFinished = true;
-            frameExecutionCV.notify_one();
-        });*/
 
     commandBuffer->commit();
     surface = nullptr;
