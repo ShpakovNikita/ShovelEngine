@@ -8,6 +8,7 @@ namespace SHV {
 class InputManager {
    public:
     void PollEvents(SDL_Event* event);
+    void ClearInput();
 
     inline const Input& GetInput() const { return input; };
 

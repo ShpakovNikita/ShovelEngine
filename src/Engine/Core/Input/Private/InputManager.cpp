@@ -13,17 +13,19 @@ static std::map<SDL_Keycode, SHV::eKey> kKeySDLToSHV = {
 };
 }
 
-void InputManager::PollEvents(SDL_Event* event) {
-    Input currentInput;
+void InputManager::ClearInput() {
+    input.mouseMotion.dx = 0;
+    input.mouseMotion.dy = 0;
+}
 
+void InputManager::PollEvents(SDL_Event* event) {
     switch (event->type) {
         /* Keyboard event */
         case SDL_KEYDOWN: {
             auto keyIt =
                 SInputManager::kKeySDLToSHV.find(event->key.keysym.sym);
             if (keyIt != SInputManager::kKeySDLToSHV.end()) {
-                currentInput.pressedKeys[static_cast<size_t>(keyIt->second)] =
-                    true;
+                input.pressedKeys[static_cast<size_t>(keyIt->second)] = true;
             }
             break;
         }
@@ -31,14 +33,33 @@ void InputManager::PollEvents(SDL_Event* event) {
             auto keyIt =
                 SInputManager::kKeySDLToSHV.find(event->key.keysym.sym);
             if (keyIt != SInputManager::kKeySDLToSHV.end()) {
-                currentInput.pressedKeys[static_cast<size_t>(keyIt->second)] =
-                    false;
+                input.pressedKeys[static_cast<size_t>(keyIt->second)] = false;
+            }
+            break;
+        }
+        case SDL_MOUSEMOTION: {
+            MouseMotion mouseMotion{event->motion.x, event->motion.y,
+                                    event->motion.xrel, event->motion.yrel};
+            input.mouseMotion = mouseMotion;
+            break;
+        }
+        case SDL_MOUSEBUTTONDOWN: {
+            if (event->button.button == SDL_BUTTON_RIGHT) {
+                input.pressedKeys[static_cast<size_t>(eKey::kRMB)] = true;
+            } else if (event->button.button == SDL_BUTTON_LEFT) {
+                input.pressedKeys[static_cast<size_t>(eKey::kLMB)] = true;
+            }
+            break;
+        }
+        case SDL_MOUSEBUTTONUP: {
+            if (event->button.button == SDL_BUTTON_RIGHT) {
+                input.pressedKeys[static_cast<size_t>(eKey::kRMB)] = false;
+            } else if (event->button.button == SDL_BUTTON_LEFT) {
+                input.pressedKeys[static_cast<size_t>(eKey::kLMB)] = false;
             }
             break;
         }
         default:
             break;
     }
-
-    input = currentInput;
 }

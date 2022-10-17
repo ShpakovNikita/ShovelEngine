@@ -6,15 +6,18 @@
 
 namespace SHV {
 class InputManager;
+class Window;
 
 class InputSystem : public System {
    public:
-    InputSystem(entt::registry& registry, InputManager& inputManager);
+    InputSystem(entt::registry& registry, InputManager& inputManager,
+                Window& window);
     virtual ~InputSystem();
 
     virtual void Process(float dt);
 
    private:
     InputManager& inputManager;
+    Window& window;
 };
 }  // namespace SHV

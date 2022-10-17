@@ -25,24 +25,47 @@ void MovementSystem::Process(float dt) {
             continue;
         }
 
+        if (inputComponent.input.IsKeyPressed(eKey::kRMB) &&
+            inputComponent.normalizedMotion.length() != 0) {
+            auto transformEulerAngles =
+                eulerAngles(transformComponent.rotation);
+
+            transformEulerAngles.x +=
+                inputComponent.normalizedMotion.y;  // pitch
+            transformEulerAngles.y += inputComponent.normalizedMotion.x;  // yaw
+
+            if (transformEulerAngles.x > glm::radians(89.0f)) {
+                transformEulerAngles.x = glm::radians(89.0f);
+            }
+
+            if (transformEulerAngles.x < glm::radians(-89.0f)) {
+                transformEulerAngles.x = glm::radians(-89.0f);
+            }
+
+            transformComponent.rotation = glm::quat(transformEulerAngles);
+        }
+
+        const glm::vec3 cameraDirection = glm::normalize(
+            transformComponent.rotation * cameraComponent.cameraFront);
+
         if (inputComponent.input.IsKeyPressed(eKey::kW)) {
             transformComponent.translation +=
-                cameraComponent.cameraFront * movementComponent.speed * dt;
+                cameraDirection * movementComponent.speed * dt;
         }
         if (inputComponent.input.IsKeyPressed(eKey::kA)) {
             transformComponent.translation -=
-                glm::normalize(glm::cross(cameraComponent.cameraFront,
-                                          cameraComponent.cameraUp)) *
+                glm::normalize(
+                    glm::cross(cameraDirection, cameraComponent.cameraUp)) *
                 movementComponent.speed * dt;
         }
         if (inputComponent.input.IsKeyPressed(eKey::kS)) {
             transformComponent.translation -=
-                cameraComponent.cameraFront * movementComponent.speed * dt;
+                cameraDirection * movementComponent.speed * dt;
         }
         if (inputComponent.input.IsKeyPressed(eKey::kD)) {
             transformComponent.translation +=
-                glm::normalize(glm::cross(cameraComponent.cameraFront,
-                                          cameraComponent.cameraUp)) *
+                glm::normalize(
+                    glm::cross(cameraDirection, cameraComponent.cameraUp)) *
                 movementComponent.speed * dt;
         }
     }

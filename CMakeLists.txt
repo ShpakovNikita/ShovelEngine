@@ -71,6 +71,7 @@ target_compile_definitions(imgui
 file(GLOB_RECURSE HEADER_FILES LIST_DIRECTORIES false
         "${SOURCE_DIR}/*.hpp"
         )
+
 set(SOURCE_FILES ${SOURCE_FILES} ${HEADER_FILES} ${METAL_SHADERS})
 
 option(TRACY_ENABLE "" ON)

@@ -116,11 +116,11 @@ void SHV::OpenGl::Renderer::Draw(const Scene& scene) {
 
         glUniformMatrix4fv(projectionUniformLocation, 1, GL_FALSE,
                            glm::value_ptr(cameraComponent.projection));
-        glUniformMatrix4fv(
-            viewUniformLocation, 1, GL_FALSE,
-            glm::value_ptr(transformComponent->GetLocalMatrix()));
-        glUniformMatrix4fv(modelUniformLocation, 1, GL_FALSE,
+        glUniformMatrix4fv(viewUniformLocation, 1, GL_FALSE,
                            glm::value_ptr(cameraTransform.GetLocalMatrix()));
+        glUniformMatrix4fv(
+            modelUniformLocation, 1, GL_FALSE,
+            glm::value_ptr(transformComponent->GetWorldMatrix()));
 
         renderBatch.Bind();
         glDrawElements(GL_TRIANGLES, renderBatch.GetIndexCount(),

@@ -106,7 +106,7 @@ void SHV::Metal::Renderer::Draw(const Scene& scene) {
         UniformsData uniformsData;
         uniformsData.projection = GlmToSimdMatrix(cameraComponent.projection);
         uniformsData.model =
-            GlmToSimdMatrix(transformComponent->GetLocalMatrix());
+            GlmToSimdMatrix(transformComponent->GetWorldMatrix());
         uniformsData.view = GlmToSimdMatrix(cameraTransform.GetLocalMatrix());
 
         renderCommandEncoder->setVertexBytes(&uniformsData,
@@ -135,8 +135,13 @@ void SHV::Metal::Renderer::BeginFrame() {
     AssertD(drawPool == nullptr);
     drawPool = NS::AutoreleasePool::alloc()->init();
 
-    AssertD(surface == nullptr);
-    surface = windowContext.NextDrawable();
+    {
+        ZoneNamedN(__tracy_scope_2, "Next Drawable",
+                   static_cast<bool>(kActiveProfilerSystems &
+                                     ProfilerSystems::Rendering));
+        AssertD(surface == nullptr);
+        surface = windowContext.NextDrawable();
+    }
 
     MTL::ClearColor clearColor(
         windowContext.GetWindow().GetWindowConfig().clearColor.r,
@@ -149,10 +154,17 @@ void SHV::Metal::Renderer::BeginFrame() {
     attachment->setLoadAction(MTL::LoadActionClear);
     attachment->setTexture(surface->texture());
 
-    commandBuffer = commandQueue->GetCommandQueue().commandBuffer();
-    commandBuffer->addCompletedHandler([this](MTL::CommandBuffer* /*buffer*/) {
-        frameBufferingSemaphore.release();
-    });
+    {
+        ZoneNamedN(__tracy_scope_2, "New Command Buffer",
+                   static_cast<bool>(kActiveProfilerSystems &
+                                     ProfilerSystems::Rendering));
+        commandBuffer = commandQueue->GetCommandQueue().commandBuffer();
+        commandBuffer->addCompletedHandler(
+            [this](MTL::CommandBuffer* /*buffer*/) {
+                frameBufferingSemaphore.release();
+            });
+    }
+
     renderCommandEncoder =
         commandBuffer->renderCommandEncoder(renderPassDescriptor);
 }

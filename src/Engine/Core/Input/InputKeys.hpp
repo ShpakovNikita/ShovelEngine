@@ -7,6 +7,9 @@ enum class eKey {
     kS,
     kD,
 
+    kRMB,
+    kLMB,
+
     kSize,
 };
 }

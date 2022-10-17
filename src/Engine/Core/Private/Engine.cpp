@@ -182,9 +182,13 @@ void Engine::HandleMutableConfigChange() {
 
 void Engine::PollEvents(float /* deltaTime */) {
     SDL_Event e;
+    renderContext->GetWindow().GetInputManager().ClearInput();
+
     while (SDL_PollEvent(&e)) {
         renderContext->GetImGui().PollEvents(&e);
-        if ((e.type == SDL_KEYDOWN || e.type == SDL_KEYUP) &&
+        if ((e.type == SDL_KEYDOWN || e.type == SDL_KEYUP ||
+             e.type == SDL_MOUSEMOTION || e.type == SDL_MOUSEBUTTONDOWN ||
+             e.type == SDL_MOUSEBUTTONUP) &&
             e.key.windowID == renderContext->GetWindow().GetWindowID()) {
             renderContext->GetWindow().GetInputManager().PollEvents(&e);
         }
@@ -219,7 +223,7 @@ void Engine::SetMutableConfig(MutableConfig& config) {
 void Engine::LoadPrimitives() {
     auto& registry = scene->GetRegistry();
 
-    /*
+
     // Cube
     {
         auto entity = registry.create();
@@ -246,8 +250,9 @@ void Engine::LoadPrimitives() {
 
         renderComponent.primitive = primitive;
     }
-     */
 
+
+    /*
     // Floor
     {
         auto entity = registry.create();
@@ -268,17 +273,20 @@ void Engine::LoadPrimitives() {
         auto& renderComponent = registry.emplace<RenderComponent>(entity);
         auto& transform = registry.emplace<TransformComponent>(entity);
         transform.rotation =
-            glm::angleAxis(glm::radians(96.0f), glm::vec3(1.0f, 0.0, 0.0));
+            glm::angleAxis(glm::radians(90.0f), glm::vec3(1.0f, 0.0, 0.0));
+        transform.scale = glm::vec3(2.0f);
 
         renderComponent.primitive = primitive;
     }
+     */
 }
 
 void Engine::UnloadPrimitives() {}
 
 void Engine::CreateScene() {
     scene = std::make_unique<Scene>();
-    scene->AddSystem<InputSystem>(renderContext->GetWindow().GetInputManager());
+    scene->AddSystem<InputSystem>(renderContext->GetWindow().GetInputManager(),
+                                  renderContext->GetWindow());
     scene->AddSystem<MovementSystem>();
     scene->AddSystem<TransformSystem>();
     scene->AddSystem<CameraSystem>(renderContext->GetWindow());
