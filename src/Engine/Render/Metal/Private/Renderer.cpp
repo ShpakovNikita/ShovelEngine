@@ -107,7 +107,8 @@ void SHV::Metal::Renderer::Draw(const Scene& scene) {
         uniformsData.projection = GlmToSimdMatrix(cameraComponent.projection);
         uniformsData.model =
             GlmToSimdMatrix(transformComponent->GetWorldMatrix());
-        uniformsData.view = GlmToSimdMatrix(cameraTransform.GetLocalMatrix());
+        uniformsData.view =
+            GlmToSimdMatrix(cameraComponent.GetViewMatrix(cameraTransform));
 
         renderCommandEncoder->setVertexBytes(&uniformsData,
                                              sizeof(uniformsData), 1);

@@ -31,7 +31,16 @@ void CameraDataViewer::Draw(bool* show) {
             float cameraPos[3] = {transformComponent.translation.x,
                                   transformComponent.translation.y,
                                   transformComponent.translation.z};
+
+            const auto eulerRotation = eulerAngles(transformComponent.rotation);
+
+            float cameraYawPitch[2] = {
+                eulerRotation.x,
+                eulerRotation.y,
+            };
+
             ImGui::InputFloat3("Camera pos", cameraPos);
+            ImGui::InputFloat2("Camera yaw pitch", cameraYawPitch);
         }
     }
 

@@ -30,9 +30,10 @@ void MovementSystem::Process(float dt) {
             auto transformEulerAngles =
                 eulerAngles(transformComponent.rotation);
 
-            transformEulerAngles.x +=
-                inputComponent.normalizedMotion.y;  // pitch
-            transformEulerAngles.y += inputComponent.normalizedMotion.x;  // yaw
+            transformEulerAngles.x += inputComponent.normalizedMotion.y *
+                                      cameraComponent.sensitivity;  // pitch
+            transformEulerAngles.y -= inputComponent.normalizedMotion.x *
+                                      cameraComponent.sensitivity;  // yaw
 
             if (transformEulerAngles.x > glm::radians(89.0f)) {
                 transformEulerAngles.x = glm::radians(89.0f);
