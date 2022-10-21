@@ -144,16 +144,24 @@ void SHV::Metal::Renderer::BeginFrame() {
         surface = windowContext.NextDrawable();
     }
 
+    MTL::Texture* depthTexture = CreateDepthTexture();
+
     MTL::ClearColor clearColor(
         windowContext.GetWindow().GetWindowConfig().clearColor.r,
         windowContext.GetWindow().GetWindowConfig().clearColor.g,
         windowContext.GetWindow().GetWindowConfig().clearColor.b,
         windowContext.GetWindow().GetWindowConfig().clearColor.a);
     renderPassDescriptor = MTL::RenderPassDescriptor::alloc()->init();
-    auto attachment = renderPassDescriptor->colorAttachments()->object(0);
-    attachment->setClearColor(clearColor);
-    attachment->setLoadAction(MTL::LoadActionClear);
-    attachment->setTexture(surface->texture());
+
+    auto depthAttachment = renderPassDescriptor->depthAttachment();
+    depthAttachment->setTexture(depthTexture);
+    depthAttachment->setClearDepth(1.0f);
+    depthAttachment->setStoreAction(MTL::StoreAction::StoreActionDontCare);
+
+    auto colorAttachment = renderPassDescriptor->colorAttachments()->object(0);
+    colorAttachment->setClearColor(clearColor);
+    colorAttachment->setLoadAction(MTL::LoadActionClear);
+    colorAttachment->setTexture(surface->texture());
 
     {
         ZoneNamedN(__tracy_scope_2, "New Command Buffer",
@@ -166,8 +174,18 @@ void SHV::Metal::Renderer::BeginFrame() {
             });
     }
 
+    MTL::DepthStencilDescriptor* depthDescriptor =
+        MTL::DepthStencilDescriptor::alloc()->init();
+    depthDescriptor->setDepthCompareFunction(
+        MTL::CompareFunction::CompareFunctionLessEqual);
+    depthDescriptor->setDepthWriteEnabled(true);
+
+    MTL::DepthStencilState* depthStencilState =
+        device->GetDevice().newDepthStencilState(depthDescriptor);
+
     renderCommandEncoder =
         commandBuffer->renderCommandEncoder(renderPassDescriptor);
+    renderCommandEncoder->setDepthStencilState(depthStencilState);
 }
 
 void SHV::Metal::Renderer::WaitForFrameExecutionFinish() {
@@ -212,4 +230,17 @@ MTL::CommandBuffer& SHV::Metal::Renderer::GetCommandBuffer() const {
 MTL::RenderCommandEncoder& SHV::Metal::Renderer::GetRenderCommandEncoder()
     const {
     return *renderCommandEncoder;
+}
+
+MTL::Texture* SHV::Metal::Renderer::CreateDepthTexture() {
+    const size_t width = windowContext.GetWindow().GetWindowSize().x;
+    const size_t height = windowContext.GetWindow().GetWindowSize().y;
+
+    auto textureDescr = MTL::TextureDescriptor::texture2DDescriptor(
+        MTL::PixelFormat::PixelFormatDepth32Float_Stencil8, width, height,
+        false);
+    textureDescr->setStorageMode(MTL::StorageMode::StorageModePrivate);
+    textureDescr->setUsage(MTL::TextureUsageRenderTarget);
+
+    return device->GetDevice().newTexture(textureDescr);
 }

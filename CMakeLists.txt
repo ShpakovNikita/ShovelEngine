@@ -11,7 +11,7 @@ set(IMGUI_SOURCE_PATH "${CMAKE_SOURCE_DIR}/external/imgui")
 set(IMGUI_FILE_DIALOG_SOURCE_PATH "${CMAKE_SOURCE_DIR}/external/ImGuiFileDialog")
 
 
-# set(ASSETS_DIR "${CMAKE_SOURCE_DIR}/assets")
+set(ASSETS_DIR "${CMAKE_SOURCE_DIR}/assets")
 # set(SHADERS_LIB "MetalShaders")
 # set(COMMON_LIB "CommonLib")
 
@@ -96,6 +96,7 @@ include_directories(${MINECRAFT_SOURCE_PATH})
 # include_directories(${ENGINE_SOURCE_PATH})
 
 add_definitions(-DSAMPLE_MODELS_DIR=\"${CMAKE_SOURCE_DIR}/external/glTF-Sample-Models/2.0/\")
+add_definitions(-DASSETS_DIR=\"${ASSETS_DIR}\")
 add_definitions(-DOPEN_GL_SHADERS_DIR=\"${OPEN_GL_RENDER_SOURCE_PATH}/Shaders/\")
 
 if (CMAKE_BUILD_TYPE MATCHES DEBUG)

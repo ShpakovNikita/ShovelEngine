@@ -270,6 +270,7 @@ void SHV::LoadGltfModelToScene(Scene& scene, const std::string& modelFilePath) {
     }
 
     auto rootNode = scene.GetRegistry().create();
+    scene.GetRegistry().emplace<TransformComponent>(rootNode);
 
     const tinygltf::Scene& gltfScene =
         model.scenes[model.defaultScene > -1 ? model.defaultScene : 0];

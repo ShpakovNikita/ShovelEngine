@@ -9,6 +9,10 @@ class RenderPipelineState;
 namespace SHV {
 namespace Metal {
 
+struct RenderPipelineParams {
+    bool enableDepthTest = true;
+};
+
 class LogicalDevice;
 
 class RenderPipeline {
@@ -16,6 +20,11 @@ class RenderPipeline {
     RenderPipeline(LogicalDevice& logicalDevice,
                    const std::string& vertexProgramName,
                    const std::string& fragmentProgramName);
+
+    RenderPipeline(LogicalDevice& logicalDevice,
+                   const std::string& vertexProgramName,
+                   const std::string& fragmentProgramName,
+                   const RenderPipelineParams& renderPipelineParams);
 
     void SetUp();
     void TearDown();
@@ -28,6 +37,8 @@ class RenderPipeline {
 
     std::string vertexProgramName;
     std::string fragmentProgramName;
+
+    const RenderPipelineParams renderPipelineParams;
 };
 }  // namespace Metal
 }  // namespace SHV

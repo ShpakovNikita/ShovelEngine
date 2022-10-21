@@ -13,6 +13,7 @@ class Buffer;
 class RenderPassDescriptor;
 class CommandBuffer;
 class RenderCommandEncoder;
+class Texture;
 }  // namespace MTL
 
 namespace NS {
@@ -58,6 +59,8 @@ class Renderer : public ::SHV::Renderer {
     virtual void WaitForFrameExecutionFinish();
 
    private:
+    MTL::Texture* CreateDepthTexture();
+
     std::unique_ptr<LogicalDevice> device;
     std::unique_ptr<RenderPipeline> renderPipeline;
     std::unique_ptr<CommandQueue> commandQueue;
@@ -70,7 +73,7 @@ class Renderer : public ::SHV::Renderer {
 
     WindowContext& windowContext;
 
-    std::counting_semaphore<3> frameBufferingSemaphore{0};
+    std::counting_semaphore<1> frameBufferingSemaphore{0};
 };
 }  // namespace Metal
 

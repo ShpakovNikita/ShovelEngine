@@ -11,9 +11,17 @@ using namespace SHV;
 Metal::RenderPipeline::RenderPipeline(LogicalDevice& aLogicalDevice,
                                       const std::string& aVertexProgramName,
                                       const std::string& aFragmentProgramName)
+    : Metal::RenderPipeline(aLogicalDevice, aVertexProgramName,
+                            aFragmentProgramName, {}) {}
+
+Metal::RenderPipeline::RenderPipeline(
+    LogicalDevice& aLogicalDevice, const std::string& aVertexProgramName,
+    const std::string& aFragmentProgramName,
+    const RenderPipelineParams& aRenderPipelineParams)
     : logicalDevice(aLogicalDevice),
       vertexProgramName(aVertexProgramName),
-      fragmentProgramName(aFragmentProgramName) {}
+      fragmentProgramName(aFragmentProgramName),
+      renderPipelineParams(aRenderPipelineParams) {}
 
 void Metal::RenderPipeline::SetUp() {
     LogD(eTag::kMetalAPI) << "Setting up Render Pipeline" << std::endl;
@@ -36,6 +44,11 @@ void Metal::RenderPipeline::SetUp() {
     pipelineStateDescriptor->setFragmentFunction(fragmentProgram);
     pipelineStateDescriptor->colorAttachments()->object(0)->setPixelFormat(
         MTL::PixelFormat::PixelFormatBGRA8Unorm);
+
+    if (renderPipelineParams.enableDepthTest) {
+        pipelineStateDescriptor->setDepthAttachmentPixelFormat(
+            MTL::PixelFormat::PixelFormatDepth32Float_Stencil8);
+    }
 
     NS::Error* error = nullptr;
     pipelineState = logicalDevice.GetDevice().newRenderPipelineState(

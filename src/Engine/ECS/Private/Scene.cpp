@@ -7,6 +7,7 @@
 
 SHV::Scene::Scene() {
     rootEntity = registry.create();
+    registry.emplace<TransformComponent>(rootEntity);
     registry.emplace<RootComponent>(rootEntity);
 };
 SHV::Scene::~Scene() = default;
