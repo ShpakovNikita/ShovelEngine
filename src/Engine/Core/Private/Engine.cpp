@@ -1,7 +1,6 @@
 #include "Engine/Core/Engine.hpp"
 
 #include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp>
 
 #include <SDL.h>
 
@@ -18,7 +17,9 @@
 #include "Engine/Core/ImmutableConfig.hpp"
 #include "Engine/Core/MutableConfig.hpp"
 #include "Engine/Core/Window.hpp"
+#include "Engine/Core/FileSystem.hpp"
 #include "Engine/Core/Input/InputManager.hpp"
+#include "Engine/Core/Resources/ResourceManager.hpp"
 
 #include "Engine/Render/ImGuiImpl.hpp"
 #include "Engine/Render/RenderContext.hpp"
@@ -42,11 +43,26 @@
 
 using namespace SHV;
 
+Engine* enginePtr = nullptr;
+
 Engine::Engine(const ImmutableConfig& aImmutableConfig,
                MutableConfig& aMutableConfig)
     : immutableConfig(aImmutableConfig),
       mutableConfig(aMutableConfig),
-      renderContext(nullptr) {}
+      renderContext(nullptr) {
+    AssertD(enginePtr == nullptr);
+    enginePtr = this;
+}
+
+Engine::~Engine() {
+    AssertD(enginePtr != nullptr);
+    enginePtr = nullptr;
+};
+
+Engine& Engine::Get() {
+    AssertD(enginePtr != nullptr);
+    return *enginePtr;
+}
 
 int Engine::Run() noexcept {
     tracy::SetThreadName("main");
@@ -84,9 +100,13 @@ void Engine::SetUp() {
                         SDL_GetError());
     }
 
+    fileSystem = std::make_unique<FileSystemImpl>();
+    resourceManager = std::make_unique<ResourceManager>();
+
     const WindowConfig windowConfig = {immutableConfig.width,
                                        immutableConfig.height,
                                        immutableConfig.windowName};
+
     renderContext =
         std::make_unique<RenderContext>(windowConfig, mutableConfig.renderApi);
     renderContext->SetUp();
@@ -104,6 +124,9 @@ void Engine::TearDown() {
 
     renderContext->TearDown();
     renderContext = nullptr;
+
+    resourceManager = nullptr;
+    fileSystem = nullptr;
 
     SDL_Quit();
 }
@@ -212,8 +235,6 @@ void Engine::RenderLoop(float /* deltaTime */) {
     renderContext->GetRenderer().WaitForFrameExecutionFinish();
 }
 
-Engine::~Engine() = default;
-
 const MutableConfig& Engine::GetMutableConfig() const { return mutableConfig; }
 
 void Engine::SetMutableConfig(MutableConfig& config) {
@@ -222,7 +243,6 @@ void Engine::SetMutableConfig(MutableConfig& config) {
 
 void Engine::LoadPrimitives() {
     auto& registry = scene->GetRegistry();
-
 
     // Cube
     {
@@ -246,11 +266,11 @@ void Engine::LoadPrimitives() {
                              3, 7, 0, 0, 7, 3, 4, 5, 7, 5, 6, 7};
 
         auto& renderComponent = registry.emplace<RenderComponent>(entity);
+        renderComponent.material.texture = resourceManager->Get("wall.jpg");
         registry.emplace<TransformComponent>(entity);
 
         renderComponent.primitive = primitive;
     }
-
 
     /*
     // Floor
@@ -318,4 +338,10 @@ void Engine::CreateCharacter() {
     registry.emplace<CameraComponent>(character);
 
     Entity::AddChild(registry, scene->GetRootEntity(), character);
+}
+
+const FileSystem& Engine::GetFileSystem() const { return *fileSystem; }
+
+const ResourceManager& Engine::GetResourceManager() const {
+    return *resourceManager;
 }

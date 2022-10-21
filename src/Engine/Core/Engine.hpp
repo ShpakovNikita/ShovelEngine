@@ -14,6 +14,8 @@ struct MutableConfig;
 class RenderContext;
 class Toolbar;
 class Scene;
+class FileSystem;
+class ResourceManager;
 
 class Engine {
    public:
@@ -25,6 +27,11 @@ class Engine {
 
     const MutableConfig& GetMutableConfig() const;
     void SetMutableConfig(MutableConfig& config);
+
+    const FileSystem& GetFileSystem() const;
+    const ResourceManager& GetResourceManager() const;
+
+    static Engine& Get();
 
    private:
     void CreateCharacter();
@@ -48,13 +55,15 @@ class Engine {
     void HandleMutableConfigChange();
 
     const ImmutableConfig& immutableConfig;
-    
+
     MutableConfig mutableConfig;
     std::optional<MutableConfig> newMutableConfig;
 
     std::unique_ptr<RenderContext> renderContext;
     std::unique_ptr<Toolbar> toolbar;
     std::unique_ptr<Scene> scene;
+    std::unique_ptr<FileSystem> fileSystem;
+    std::unique_ptr<ResourceManager> resourceManager;
 
     bool isRunning = false;
 };
