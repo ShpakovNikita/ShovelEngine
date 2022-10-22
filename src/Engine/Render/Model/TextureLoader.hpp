@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Engine/Core/Resources/ResourceCache.hpp"
+#include "Engine/Core/Resources/ResourceLoader.hpp"
 #include "Engine/Render/Model/Texture.hpp"
 
 namespace SHV {

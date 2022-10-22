@@ -4,11 +4,13 @@
 using namespace SHV;
 
 ResourceManager::ResourceManager()
-    : texturesCache(std::make_unique<ResourceCache<Texture>>(
-          std::make_unique<TextureLoader>())){};
+    : texturesCache(
+          std::make_unique<ResourceCache<Texture, ResourceLoader<Texture>>>(
+              std::make_unique<TextureLoader>())){};
 
 ResourceManager::~ResourceManager() = default;
 
+template <>
 const std::shared_ptr<Texture> ResourceManager::Get(
     const std::string& resourcePath) {
     return texturesCache->Get(resourcePath);

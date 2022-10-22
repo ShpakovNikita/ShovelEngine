@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ResourceCache.hpp"
+#include "ResourceLoader.hpp"
 #include "Engine/Render/Model/Texture.hpp"
 
 namespace SHV {
@@ -10,11 +11,13 @@ class ResourceManager {
     ResourceManager();
     ~ResourceManager();
 
-    const std::shared_ptr<Texture> Get(const std::string& resourcePath);
+    template <typename ResourceType>
+    const std::shared_ptr<ResourceType> Get(const std::string& resourcePath);
 
     void Invalidate();
 
    private:
-    std::unique_ptr<ResourceCache<Texture>> texturesCache;
+    std::unique_ptr<ResourceCache<Texture, ResourceLoader<Texture>>>
+        texturesCache;
 };
 }  // namespace SHV

@@ -29,7 +29,7 @@ class Engine {
     void SetMutableConfig(MutableConfig& config);
 
     const FileSystem& GetFileSystem() const;
-    const ResourceManager& GetResourceManager() const;
+    ResourceManager& GetResourceManager() const;
 
     static Engine& Get();
 

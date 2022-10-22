@@ -24,6 +24,8 @@
 
 #include "Engine/Render/OpenGl/ECS/Components/RenderComponent.hpp"
 #include "Engine/Render/OpenGl/ECS/RenderBatcher.hpp"
+#include "Engine/Render/OpenGl/Model/GPUTexture.hpp"
+#include "Engine/Render/OpenGl/Model/TextureGPUAllocator.hpp"
 #include "Engine/Render/ECS/Systems/RenderSystem.hpp"
 
 SHV::OpenGl::Renderer::Renderer(SHV::OpenGl::WindowContext& aWindow)
@@ -65,12 +67,16 @@ void SHV::OpenGl::Renderer::TearDown() {
 void SHV::OpenGl::Renderer::SetUpScene(Scene& scene) {
     std::unique_ptr<SHV::RenderBatcher> renderBatcher =
         std::make_unique<SHV::OpenGl::RenderBatcher>();
-    scene.AddSystem<SHV::RenderSystem<SHV::OpenGl::RenderComponent>>(
-        std::move(renderBatcher));
+    std::unique_ptr<TextureGPUAllocator> gpuTexturesAllocator =
+        std::make_unique<SHV::OpenGl::TextureGPUAllocator>();
+    scene.AddSystem<SHV::RenderSystem<SHV::OpenGl::RenderComponent,
+                                      SHV::OpenGl::GPUTexture>>(
+        std::move(renderBatcher), std::move(gpuTexturesAllocator));
 }
 
 void SHV::OpenGl::Renderer::TearDownScene(Scene& scene) {
-    scene.RemoveSystem<SHV::RenderSystem<SHV::OpenGl::RenderComponent>>();
+    scene.RemoveSystem<SHV::RenderSystem<SHV::OpenGl::RenderComponent,
+                                         SHV::OpenGl::GPUTexture>>();
 }
 
 void SHV::OpenGl::Renderer::WaitForFrameExecutionFinish() {

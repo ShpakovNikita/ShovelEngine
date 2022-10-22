@@ -24,6 +24,8 @@
 #include "Engine/ECS/Entity.hpp"
 #include "Engine/ECS/Components/CameraComponent.hpp"
 #include "Engine/Render/Metal/ECS/RenderBatcher.hpp"
+#include "Engine/Render/Metal/Model/GPUTexture.hpp"
+#include "Engine/Render/Metal/Model/TextureGPUAllocator.hpp"
 #include "Engine/Render/Metal/ECS/Components/RenderComponent.hpp"
 #include "Engine/Render/ECS/Systems/RenderSystem.hpp"
 #include "Engine/Render/Metal/Utils/Math.hpp"
@@ -70,12 +72,16 @@ void SHV::Metal::Renderer::TearDown() {
 void SHV::Metal::Renderer::SetUpScene(Scene& scene) {
     std::unique_ptr<SHV::RenderBatcher> renderBatcher =
         std::make_unique<SHV::Metal::RenderBatcher>(*device);
-    scene.AddSystem<SHV::RenderSystem<SHV::Metal::RenderComponent>>(
-        std::move(renderBatcher));
+    std::unique_ptr<TextureGPUAllocator> gpuTexturesAllocator =
+        std::make_unique<SHV::Metal::TextureGPUAllocator>();
+    scene.AddSystem<
+        SHV::RenderSystem<SHV::Metal::RenderComponent, SHV::Metal::GPUTexture>>(
+        std::move(renderBatcher), std::move(gpuTexturesAllocator));
 }
 
 void SHV::Metal::Renderer::TearDownScene(Scene& scene) {
-    scene.RemoveSystem<SHV::RenderSystem<SHV::Metal::RenderComponent>>();
+    scene.RemoveSystem<SHV::RenderSystem<SHV::Metal::RenderComponent,
+                                         SHV::Metal::GPUTexture>>();
 }
 
 void SHV::Metal::Renderer::Draw(const Scene& scene) {

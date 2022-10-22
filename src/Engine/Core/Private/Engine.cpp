@@ -266,7 +266,8 @@ void Engine::LoadPrimitives() {
                              3, 7, 0, 0, 7, 3, 4, 5, 7, 5, 6, 7};
 
         auto& renderComponent = registry.emplace<RenderComponent>(entity);
-        renderComponent.material.texture = resourceManager->Get("wall.jpg");
+        renderComponent.material.texture =
+            resourceManager->Get<Texture>("wall.jpg");
         registry.emplace<TransformComponent>(entity);
 
         renderComponent.primitive = primitive;
@@ -342,6 +343,4 @@ void Engine::CreateCharacter() {
 
 const FileSystem& Engine::GetFileSystem() const { return *fileSystem; }
 
-const ResourceManager& Engine::GetResourceManager() const {
-    return *resourceManager;
-}
+ResourceManager& Engine::GetResourceManager() const { return *resourceManager; }
