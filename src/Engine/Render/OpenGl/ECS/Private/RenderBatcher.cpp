@@ -1,8 +1,17 @@
 #include "Engine/Render/OpenGl/ECS/RenderBatcher.hpp"
 
 #include "Engine/Render/OpenGl/ECS/Components/RenderComponent.hpp"
+#include "Engine/Render/OpenGl/Model/GPUTexture.hpp"
+#include "Engine/Render/OpenGl/ShaderProgram.hpp"
+#include "Engine/Render/OpenGl/ShaderCache.hpp"
+
+#include "Engine/Core/Resources/ResourceCache.hpp"
 
 using namespace SHV;
+
+OpenGl::RenderBatcher::RenderBatcher()
+    : gpuTexturesCache(std::make_unique<ResourceCache<GPUTexture>>()),
+      shaderCache(std::make_unique<ShaderCache>()) {}
 
 void OpenGl::RenderBatcher::AddRenderBatch(
     entt::registry& registry, entt::entity& entity,
@@ -11,6 +20,17 @@ void OpenGl::RenderBatcher::AddRenderBatch(
         registry.emplace<SHV::OpenGl::RenderComponent>(entity);
     openGlRenderComponent.renderBatch =
         OpenGl::RenderBatch::Create(renderComponent.primitive);
+
+    openGlRenderComponent.renderMaterial = std::make_shared<RenderMaterial>(
+        shaderCache->Get(renderComponent.material.materialShader));
+
+    // TODO: smarter
+    if (renderComponent.material.texture) {
+        auto gpuTexture = gpuTexturesCache->Get(
+            renderComponent.material.texture->GetTexturePath());
+        openGlRenderComponent.renderMaterial->SetTexture("baseColor",
+                                                         gpuTexture);
+    }
 }
 
 bool OpenGl::RenderBatcher::IsRegistryEmptyFromBatchedRenderComponents(

@@ -10,13 +10,14 @@ namespace SHV {
 namespace OpenGl {
 class GPUTexture {
    public:
-    GPUTexture(std::shared_ptr<Texture> texture);
+    GPUTexture(const std::string& texturePath);
     ~GPUTexture();
 
     void Bind();
+    void Unbind();
 
    private:
-    std::shared_ptr<Texture> texture = nullptr;
+    std::weak_ptr<Texture> texture;
     GLuint textureHandle = 0;
 };
 }  // namespace OpenGl

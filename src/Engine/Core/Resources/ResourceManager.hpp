@@ -17,7 +17,6 @@ class ResourceManager {
     void Invalidate();
 
    private:
-    std::unique_ptr<ResourceCache<Texture, ResourceLoader<Texture>>>
-        texturesCache;
+    std::unique_ptr<ResourceCache<Texture>> texturesCache;
 };
 }  // namespace SHV

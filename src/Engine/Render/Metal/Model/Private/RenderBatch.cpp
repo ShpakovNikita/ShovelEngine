@@ -59,6 +59,7 @@ Metal::RenderBatch Metal::RenderBatch::Create(Metal::LogicalDevice& device,
 
     // TODO: some type smart refactor
     switch (primitive.material->materialShader) {
+        case kPbrShader:
         case kBasicShader:
             const size_t vertexCount = primitive.positions.size();
             std::vector<BasicVertexLayout> primitiveData;

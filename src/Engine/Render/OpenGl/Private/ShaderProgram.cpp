@@ -115,15 +115,12 @@ SHV::OpenGl::ShaderProgram::ShaderProgram(const std::string& programName)
     : vertexShaderPath(SHV::OpenGl::SShaderProgram::GetShadersDir() +
                        programName + ".vert"),
       fragmentShaderPath(SHV::OpenGl::SShaderProgram::GetShadersDir() +
-                         programName + ".frag") {}
-
-void SHV::OpenGl::ShaderProgram::SetUp() {
-    AssertD(program == 0);
+                         programName + ".frag") {
     program = SHV::OpenGl::SShaderProgram::CreateProgram(vertexShaderPath,
                                                          fragmentShaderPath);
 }
 
-void SHV::OpenGl::ShaderProgram::TearDown() {
+SHV::OpenGl::ShaderProgram::~ShaderProgram() {
     AssertD(program != 0);
     glDeleteProgram(program);
 }

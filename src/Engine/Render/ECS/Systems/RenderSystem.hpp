@@ -19,12 +19,11 @@
 namespace SHV {
 struct RenderComponent;
 
-template <typename RenderBatchComponent, typename GPUTexture>
+template <typename RenderBatchComponent>
 class RenderSystem : public ::SHV::System {
    public:
     RenderSystem(entt::registry& registry,
-                 std::unique_ptr<RenderBatcher> renderBatcher,
-                 std::unique_ptr<ResourceLoader<GPUTexture>> textureAllocator);
+                 std::unique_ptr<RenderBatcher> renderBatcher);
     virtual ~RenderSystem();
 
     virtual void Process(float dt);
@@ -34,25 +33,18 @@ class RenderSystem : public ::SHV::System {
 
    private:
     std::unique_ptr<RenderBatcher> renderBatcher;
-    std::unique_ptr<ResourceCache<GPUTexture, ResourceLoader<GPUTexture>>>
-        gpuTexturesCache;
 };
 
-template <typename RenderBatchComponent, typename GPUTexture>
-RenderSystem<RenderBatchComponent, GPUTexture>::RenderSystem(
-    entt::registry& registry, std::unique_ptr<RenderBatcher> aRenderBatcher,
-    std::unique_ptr<ResourceLoader<GPUTexture>> aTextureAllocator)
-    : System(registry),
-      renderBatcher(std::move(aRenderBatcher)),
-      gpuTexturesCache(std::make_unique<
-                       ResourceCache<GPUTexture, ResourceLoader<GPUTexture>>>(
-          std::move(aTextureAllocator))) {}
+template <typename RenderBatchComponent>
+RenderSystem<RenderBatchComponent>::RenderSystem(
+    entt::registry& registry, std::unique_ptr<RenderBatcher> aRenderBatcher)
+    : System(registry), renderBatcher(std::move(aRenderBatcher)) {}
 
-template <typename RenderBatchComponent, typename GPUTexture>
-RenderSystem<RenderBatchComponent, GPUTexture>::~RenderSystem() = default;
+template <typename RenderBatchComponent>
+RenderSystem<RenderBatchComponent>::~RenderSystem() = default;
 
-template <typename RenderBatchComponent, typename GPUTexture>
-void RenderSystem<RenderBatchComponent, GPUTexture>::Process(float /*dt*/) {
+template <typename RenderBatchComponent>
+void RenderSystem<RenderBatchComponent>::Process(float /*dt*/) {
     ZoneNamedN(
         __tracy, "RenderSystem Process",
         static_cast<bool>(kActiveProfilerSystems & ProfilerSystems::ECS));
@@ -72,14 +64,14 @@ void RenderSystem<RenderBatchComponent, GPUTexture>::Process(float /*dt*/) {
     }
 }
 
-template <typename RenderBatchComponent, typename GPUTexture>
-void RenderSystem<RenderBatchComponent, GPUTexture>::SetUp() {
+template <typename RenderBatchComponent>
+void RenderSystem<RenderBatchComponent>::SetUp() {
     AssertD(
         renderBatcher->IsRegistryEmptyFromBatchedRenderComponents(registry));
 }
 
-template <typename RenderBatchComponent, typename GPUTexture>
-void RenderSystem<RenderBatchComponent, GPUTexture>::TearDown() {
+template <typename RenderBatchComponent>
+void RenderSystem<RenderBatchComponent>::TearDown() {
     auto renderView = registry.view<RenderBatchComponent>();
 
     for (auto&& [entity, renderComponent] : renderView.each()) {

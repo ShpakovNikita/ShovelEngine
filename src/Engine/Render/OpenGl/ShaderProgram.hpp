@@ -8,9 +8,7 @@ namespace SHV::OpenGl {
 class ShaderProgram {
    public:
     ShaderProgram(const std::string& programName);
-
-    void SetUp();
-    void TearDown();
+    ~ShaderProgram();
 
     void Use();
 

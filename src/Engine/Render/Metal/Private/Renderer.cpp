@@ -72,16 +72,12 @@ void SHV::Metal::Renderer::TearDown() {
 void SHV::Metal::Renderer::SetUpScene(Scene& scene) {
     std::unique_ptr<SHV::RenderBatcher> renderBatcher =
         std::make_unique<SHV::Metal::RenderBatcher>(*device);
-    std::unique_ptr<TextureGPUAllocator> gpuTexturesAllocator =
-        std::make_unique<SHV::Metal::TextureGPUAllocator>();
-    scene.AddSystem<
-        SHV::RenderSystem<SHV::Metal::RenderComponent, SHV::Metal::GPUTexture>>(
-        std::move(renderBatcher), std::move(gpuTexturesAllocator));
+    scene.AddSystem<SHV::RenderSystem<SHV::Metal::RenderComponent>>(
+        std::move(renderBatcher));
 }
 
 void SHV::Metal::Renderer::TearDownScene(Scene& scene) {
-    scene.RemoveSystem<SHV::RenderSystem<SHV::Metal::RenderComponent,
-                                         SHV::Metal::GPUTexture>>();
+    scene.RemoveSystem<SHV::RenderSystem<SHV::Metal::RenderComponent>>();
 }
 
 void SHV::Metal::Renderer::Draw(const Scene& scene) {

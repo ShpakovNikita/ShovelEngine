@@ -25,7 +25,7 @@
 #include "Engine/Render/OpenGl/ECS/Components/RenderComponent.hpp"
 #include "Engine/Render/OpenGl/ECS/RenderBatcher.hpp"
 #include "Engine/Render/OpenGl/Model/GPUTexture.hpp"
-#include "Engine/Render/OpenGl/Model/TextureGPUAllocator.hpp"
+#include "Engine/Render/OpenGl/ShaderCache.hpp"
 #include "Engine/Render/ECS/Systems/RenderSystem.hpp"
 
 SHV::OpenGl::Renderer::Renderer(SHV::OpenGl::WindowContext& aWindow)
@@ -52,31 +52,19 @@ void SHV::OpenGl::Renderer::SetUp() {
         throw SHV::Exception("Unable to validate extensions! %s",
                              nonValidExtension.value().c_str());
     }
-
-    AssertD(program == nullptr);
-    program = std::make_unique<ShaderProgram>("BasicShader");
-    program->SetUp();
 }
 
-void SHV::OpenGl::Renderer::TearDown() {
-    AssertD(program != nullptr);
-    program->TearDown();
-    program = nullptr;
-}
+void SHV::OpenGl::Renderer::TearDown() {}
 
 void SHV::OpenGl::Renderer::SetUpScene(Scene& scene) {
     std::unique_ptr<SHV::RenderBatcher> renderBatcher =
         std::make_unique<SHV::OpenGl::RenderBatcher>();
-    std::unique_ptr<TextureGPUAllocator> gpuTexturesAllocator =
-        std::make_unique<SHV::OpenGl::TextureGPUAllocator>();
-    scene.AddSystem<SHV::RenderSystem<SHV::OpenGl::RenderComponent,
-                                      SHV::OpenGl::GPUTexture>>(
-        std::move(renderBatcher), std::move(gpuTexturesAllocator));
+    scene.AddSystem<SHV::RenderSystem<SHV::OpenGl::RenderComponent>>(
+        std::move(renderBatcher));
 }
 
 void SHV::OpenGl::Renderer::TearDownScene(Scene& scene) {
-    scene.RemoveSystem<SHV::RenderSystem<SHV::OpenGl::RenderComponent,
-                                         SHV::OpenGl::GPUTexture>>();
+    scene.RemoveSystem<SHV::RenderSystem<SHV::OpenGl::RenderComponent>>();
 }
 
 void SHV::OpenGl::Renderer::WaitForFrameExecutionFinish() {
@@ -104,12 +92,16 @@ void SHV::OpenGl::Renderer::Draw(const Scene& scene) {
     for (const auto& [entity, renderComponent] : renderView.each()) {
         const auto& openGlRenderComponent =
             scene.GetRegistry().try_get<SHV::OpenGl::RenderComponent>(entity);
-        AssertE(openGlRenderComponent != nullptr);
+        AssertE(openGlRenderComponent != nullptr &&
+                openGlRenderComponent->renderMaterial != nullptr);
+
+        ShaderProgram& program =
+            openGlRenderComponent->renderMaterial->GetShaderProgram();
 
         GLuint projectionUniformLocation =
-            program->GetUniformLocation("projection");
-        GLuint viewUniformLocation = program->GetUniformLocation("view");
-        GLuint modelUniformLocation = program->GetUniformLocation("model");
+            program.GetUniformLocation("projection");
+        GLuint viewUniformLocation = program.GetUniformLocation("view");
+        GLuint modelUniformLocation = program.GetUniformLocation("model");
 
         const TransformComponent* transformComponent =
             Entity::GetFirstComponentInHierarchy<TransformComponent>(
@@ -118,7 +110,7 @@ void SHV::OpenGl::Renderer::Draw(const Scene& scene) {
 
         const auto& renderBatch = openGlRenderComponent->renderBatch;
 
-        program->Use();
+        program.Use();
 
         glUniformMatrix4fv(projectionUniformLocation, 1, GL_FALSE,
                            glm::value_ptr(cameraComponent.projection));
@@ -130,8 +122,12 @@ void SHV::OpenGl::Renderer::Draw(const Scene& scene) {
             glm::value_ptr(transformComponent->GetWorldMatrix()));
 
         renderBatch.Bind();
+        openGlRenderComponent->renderMaterial->Bind();
+
         glDrawElements(GL_TRIANGLES, renderBatch.GetIndexCount(),
                        GL_UNSIGNED_INT, 0);
+
+        openGlRenderComponent->renderMaterial->Unbind();
         renderBatch.Unbind();
     }
 }

@@ -1,12 +1,9 @@
 #include "Engine/Core/Resources/ResourceManager.hpp"
-#include "Engine/Render/Model/TextureLoader.hpp"
 
 using namespace SHV;
 
 ResourceManager::ResourceManager()
-    : texturesCache(
-          std::make_unique<ResourceCache<Texture, ResourceLoader<Texture>>>(
-              std::make_unique<TextureLoader>())){};
+    : texturesCache(std::make_unique<ResourceCache<Texture>>()){};
 
 ResourceManager::~ResourceManager() = default;
 

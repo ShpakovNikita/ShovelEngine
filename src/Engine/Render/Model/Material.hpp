@@ -6,7 +6,7 @@
 
 namespace SHV {
 
-enum eShader { kBasicShader };
+enum eShader { kBasicShader, kPbrShader };
 
 struct Material {
     eShader materialShader = eShader::kBasicShader;

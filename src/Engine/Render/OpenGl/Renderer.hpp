@@ -11,7 +11,6 @@
 namespace SHV::OpenGl {
 
 class WindowContext;
-class ShaderProgram;
 class RenderBatch;
 
 class Renderer : public SHV::Renderer {
@@ -34,8 +33,6 @@ class Renderer : public SHV::Renderer {
 
    private:
     std::optional<std::string> ValidateExtensions();
-
-    std::unique_ptr<ShaderProgram> program;
 
     WindowContext& windowContext;
 };

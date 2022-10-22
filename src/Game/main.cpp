@@ -9,7 +9,7 @@ int main(int argc, char *argv[]) {
         immutableConfig.args.push_back(argv[i]);
     };
 
-    SHV::MutableConfig mutableConfig = {120.0f, SHV::eRenderApi::kMetal};
+    SHV::MutableConfig mutableConfig = {120.0f, SHV::eRenderApi::kOpenGLES};
 
     SHV::Engine engine = {immutableConfig, mutableConfig};
 
