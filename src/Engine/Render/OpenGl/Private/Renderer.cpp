@@ -98,11 +98,6 @@ void SHV::OpenGl::Renderer::Draw(const Scene& scene) {
         ShaderProgram& program =
             openGlRenderComponent->renderMaterial->GetShaderProgram();
 
-        GLuint projectionUniformLocation =
-            program.GetUniformLocation("projection");
-        GLuint viewUniformLocation = program.GetUniformLocation("view");
-        GLuint modelUniformLocation = program.GetUniformLocation("model");
-
         const TransformComponent* transformComponent =
             Entity::GetFirstComponentInHierarchy<TransformComponent>(
                 scene.GetRegistry(), entity);
@@ -112,14 +107,9 @@ void SHV::OpenGl::Renderer::Draw(const Scene& scene) {
 
         program.Use();
 
-        glUniformMatrix4fv(projectionUniformLocation, 1, GL_FALSE,
-                           glm::value_ptr(cameraComponent.projection));
-        glUniformMatrix4fv(
-            viewUniformLocation, 1, GL_FALSE,
-            glm::value_ptr(cameraComponent.GetViewMatrix(cameraTransform)));
-        glUniformMatrix4fv(
-            modelUniformLocation, 1, GL_FALSE,
-            glm::value_ptr(transformComponent->GetWorldMatrix()));
+        program.SetMat4("projection", cameraComponent.projection);
+        program.SetMat4("view", cameraComponent.GetViewMatrix(cameraTransform));
+        program.SetMat4("model", transformComponent->GetWorldMatrix());
 
         renderBatch.Bind();
         openGlRenderComponent->renderMaterial->Bind();

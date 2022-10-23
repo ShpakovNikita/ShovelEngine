@@ -267,7 +267,7 @@ void Engine::LoadPrimitives() {
 
         auto& renderComponent = registry.emplace<RenderComponent>(entity);
         renderComponent.material.materialShader = eShader::kPbrShader;
-        renderComponent.material.texture =
+        renderComponent.material.textures["baseColor"] =
             resourceManager->Get<Texture>("wall.jpg");
         registry.emplace<TransformComponent>(entity);
 

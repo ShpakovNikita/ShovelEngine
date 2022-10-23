@@ -5,6 +5,8 @@
 #include <iostream>
 #include <vector>
 
+#include <glm/gtc/type_ptr.hpp>
+
 #include "Engine/Common/Assert.hpp"
 #include "Engine/Common/Exception.hpp"
 #include "Engine/Common/Logger.hpp"
@@ -134,4 +136,15 @@ GLuint SHV::OpenGl::ShaderProgram::GetUniformLocation(
     const std::string& uniformName) const {
     AssertD(program != 0);
     return glGetUniformLocation(program, uniformName.c_str());
+}
+
+void SHV::OpenGl::ShaderProgram::SetMat4(const std::string& uniformName,
+                                         const glm::mat4& value) {
+    glUniformMatrix4fv(GetUniformLocation(uniformName), 1, GL_FALSE,
+                       glm::value_ptr(value));
+}
+
+void SHV::OpenGl::ShaderProgram::SetInt(const std::string& uniformName,
+                                        int value) {
+    glUniform1i(GetUniformLocation(uniformName), value);
 }

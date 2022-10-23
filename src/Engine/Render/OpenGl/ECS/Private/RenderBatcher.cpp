@@ -24,12 +24,9 @@ void OpenGl::RenderBatcher::AddRenderBatch(
     openGlRenderComponent.renderMaterial = std::make_shared<RenderMaterial>(
         shaderCache->Get(renderComponent.material.materialShader));
 
-    // TODO: smarter
-    if (renderComponent.material.texture) {
-        auto gpuTexture = gpuTexturesCache->Get(
-            renderComponent.material.texture->GetTexturePath());
-        openGlRenderComponent.renderMaterial->SetTexture("baseColor",
-                                                         gpuTexture);
+    for (auto& [param, texture] : renderComponent.material.textures) {
+        auto gpuTexture = gpuTexturesCache->Get(texture->GetTexturePath());
+        openGlRenderComponent.renderMaterial->SetTexture(param, gpuTexture);
     }
 }
 

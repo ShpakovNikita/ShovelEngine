@@ -35,4 +35,6 @@ const std::string& Texture::GetTexturePath() const { return texturePath; }
 
 uint32_t Texture::GetChannelsCount() const { return channelsCount; }
 
+bool Texture::IsUsingMipmaps() const { return useMipmaps; }
+
 const void* Texture::GetData() const { return data; }

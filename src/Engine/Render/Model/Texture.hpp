@@ -12,6 +12,7 @@ class Texture {
     uint32_t GetHeight() const;
     const std::string& GetTexturePath() const;
     uint32_t GetChannelsCount() const;
+    bool IsUsingMipmaps() const;
 
     const void* GetData() const;
 
@@ -19,6 +20,8 @@ class Texture {
     std::string texturePath;
     uint32_t width = 0, height = 0;
     uint32_t channelsCount = 0;
+
+    bool useMipmaps = true;
 
     // TODO: remove from this class?
     void* data = nullptr;

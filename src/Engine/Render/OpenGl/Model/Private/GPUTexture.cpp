@@ -21,13 +21,23 @@ OpenGl::GPUTexture::GPUTexture(const std::string& texturePath) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                        GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        if (sharedTexture->IsUsingMipmaps()) {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                            GL_LINEAR_MIPMAP_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+                            GL_LINEAR_MIPMAP_LINEAR);
+        } else {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        }
 
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, sharedTexture->GetWidth(),
                      sharedTexture->GetHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE,
                      sharedTexture->GetData());
+
+        if (sharedTexture->IsUsingMipmaps()) {
+            glGenerateMipmap(GL_TEXTURE_2D);
+        }
     } else {
         throw Exception(
             "Cannot create OpenGl texture! Weak_ptr points to expired "
