@@ -13,7 +13,18 @@ class ResourceCache final {
     ResourceCache(size_t cacheSize = 1 * 1000 * 1000 * 1000 /* 1 GB */);
     ~ResourceCache();
 
-    const std::shared_ptr<ResourceType> Get(const std::string& resourcePath);
+    template <typename... Args>
+    const std::shared_ptr<ResourceType> Get(const std::string& resourcePath,
+                                            Args&&... args) {
+        auto it = cache.find(resourcePath);
+        if (it != cache.end()) {
+            return it->second;
+        }
+
+        auto resource = std::make_shared<ResourceType>(resourcePath, args...);
+        cache[resourcePath] = resource;
+        return resource;
+    }
     void InvalidateCache();
 
    private:
@@ -31,19 +42,6 @@ SHV::ResourceCache<ResourceType>::ResourceCache::~ResourceCache() {
     for (auto& [first, second] : cache) {
         AssertD(second.use_count() == 1);
     }
-}
-
-template <typename ResourceType>
-const std::shared_ptr<ResourceType> SHV::ResourceCache<ResourceType>::Get(
-    const std::string& resourcePath) {
-    auto it = cache.find(resourcePath);
-    if (it != cache.end()) {
-        return it->second;
-    }
-
-    auto resource = std::make_shared<ResourceType>(resourcePath);
-    cache[resourcePath] = resource;
-    return resource;
 }
 
 template <typename ResourceType>

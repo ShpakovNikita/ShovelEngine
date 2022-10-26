@@ -9,6 +9,9 @@ class RenderBatcher {
    public:
     RenderBatcher() = default;
     virtual ~RenderBatcher() = default;
+    
+    virtual void BeginRenderBatching() {};
+    virtual void EndRenderBatching() {};
 
     virtual void AddRenderBatch(
         entt::registry& registry, entt::entity& entity,

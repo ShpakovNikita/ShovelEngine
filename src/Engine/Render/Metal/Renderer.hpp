@@ -62,7 +62,6 @@ class Renderer : public ::SHV::Renderer {
     MTL::Texture* CreateDepthTexture();
 
     std::unique_ptr<LogicalDevice> device;
-    std::unique_ptr<RenderPipeline> renderPipeline;
     std::unique_ptr<CommandQueue> commandQueue;
 
     NS::AutoreleasePool* drawPool = nullptr;
@@ -70,6 +69,7 @@ class Renderer : public ::SHV::Renderer {
     MTL::CommandBuffer* commandBuffer = nullptr;
     MTL::RenderCommandEncoder* renderCommandEncoder = nullptr;
     CA::MetalDrawable* surface = nullptr;
+    MTL::Texture* depthTexture = nullptr;
 
     WindowContext& windowContext;
 

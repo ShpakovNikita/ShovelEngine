@@ -14,18 +14,16 @@
 
 #include "Engine/Render/Metal/CommandQueue.hpp"
 #include "Engine/Render/Metal/LogicalDevice.hpp"
-#include "Engine/Render/Metal/Model/RenderBatch.hpp"
 #include "Engine/Render/Metal/RenderPipeline.hpp"
+#include "Engine/Render/Metal/RenderPipelineCache.hpp"
 #include "Engine/Render/Metal/WindowContext.hpp"
 #include "Engine/Render/Metal/Shaders/ShaderDefinitions.h"
-#include "Engine/Render/Model/Material.hpp"
 
 #include "Engine/ECS/Scene.hpp"
 #include "Engine/ECS/Entity.hpp"
 #include "Engine/ECS/Components/CameraComponent.hpp"
 #include "Engine/Render/Metal/ECS/RenderBatcher.hpp"
 #include "Engine/Render/Metal/Model/GPUTexture.hpp"
-#include "Engine/Render/Metal/Model/TextureGPUAllocator.hpp"
 #include "Engine/Render/Metal/ECS/Components/RenderComponent.hpp"
 #include "Engine/Render/ECS/Systems/RenderSystem.hpp"
 #include "Engine/Render/Metal/Utils/Math.hpp"
@@ -44,22 +42,20 @@ void SHV::Metal::Renderer::SetUp() {
     device->SetUp();
     device->AssignDeviceToWindow(windowContext);
 
-    renderPipeline = std::make_unique<SHV::Metal::RenderPipeline>(
-        *device, "basic_vertex", "basic_fragment");
-    renderPipeline->SetUp();
-
     commandQueue = std::make_unique<SHV::Metal::CommandQueue>(*device);
     commandQueue->SetUp();
+
+    depthTexture = CreateDepthTexture();
 }
 
 void SHV::Metal::Renderer::TearDown() {
+    AssertD(depthTexture != nullptr);
+    depthTexture->release();
+    depthTexture = nullptr;
+
     AssertD(commandQueue != nullptr);
     commandQueue->TearDown();
     commandQueue = nullptr;
-
-    AssertD(renderPipeline != nullptr);
-    renderPipeline->TearDown();
-    renderPipeline = nullptr;
 
     AssertD(device != nullptr);
     device->RemoveDeviceFromWindow(windowContext);
@@ -71,7 +67,7 @@ void SHV::Metal::Renderer::TearDown() {
 
 void SHV::Metal::Renderer::SetUpScene(Scene& scene) {
     std::unique_ptr<SHV::RenderBatcher> renderBatcher =
-        std::make_unique<SHV::Metal::RenderBatcher>(*device);
+        std::make_unique<SHV::Metal::RenderBatcher>(*device, *commandQueue);
     scene.AddSystem<SHV::RenderSystem<SHV::Metal::RenderComponent>>(
         std::move(renderBatcher));
 }
@@ -98,7 +94,11 @@ void SHV::Metal::Renderer::Draw(const Scene& scene) {
     for (const auto& [entity, renderComponent] : renderView.each()) {
         const auto& metalRenderComponent =
             scene.GetRegistry().try_get<SHV::Metal::RenderComponent>(entity);
-        AssertE(metalRenderComponent != nullptr);
+        AssertE(metalRenderComponent != nullptr &&
+                metalRenderComponent->renderMaterial != nullptr);
+
+        RenderPipeline& renderPipeline =
+            metalRenderComponent->renderMaterial->GetRenderPipeline();
 
         const TransformComponent* transformComponent =
             Entity::GetFirstComponentInHierarchy<TransformComponent>(
@@ -118,7 +118,9 @@ void SHV::Metal::Renderer::Draw(const Scene& scene) {
         const auto& renderBatch = metalRenderComponent->renderBatch;
 
         renderCommandEncoder->setRenderPipelineState(
-            &renderPipeline->GetRenderPipelineState());
+            &renderPipeline.GetRenderPipelineState());
+
+        metalRenderComponent->renderMaterial->Bind(*renderCommandEncoder);
 
         renderCommandEncoder->setVertexBuffer(&renderBatch.GetVertexBuffer(), 0,
                                               0);
@@ -145,8 +147,6 @@ void SHV::Metal::Renderer::BeginFrame() {
         AssertD(surface == nullptr);
         surface = windowContext.NextDrawable();
     }
-
-    MTL::Texture* depthTexture = CreateDepthTexture();
 
     MTL::ClearColor clearColor(
         windowContext.GetWindow().GetWindowConfig().clearColor.r,

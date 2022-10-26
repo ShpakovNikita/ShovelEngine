@@ -12,18 +12,7 @@ Metal::RenderPipeline::RenderPipeline(LogicalDevice& aLogicalDevice,
                                       const std::string& aVertexProgramName,
                                       const std::string& aFragmentProgramName)
     : Metal::RenderPipeline(aLogicalDevice, aVertexProgramName,
-                            aFragmentProgramName, {}) {}
-
-Metal::RenderPipeline::RenderPipeline(
-    LogicalDevice& aLogicalDevice, const std::string& aVertexProgramName,
-    const std::string& aFragmentProgramName,
-    const RenderPipelineParams& aRenderPipelineParams)
-    : logicalDevice(aLogicalDevice),
-      vertexProgramName(aVertexProgramName),
-      fragmentProgramName(aFragmentProgramName),
-      renderPipelineParams(aRenderPipelineParams) {}
-
-void Metal::RenderPipeline::SetUp() {
+                            aFragmentProgramName, {}) {
     LogD(eTag::kMetalAPI) << "Setting up Render Pipeline" << std::endl;
 
     MTL::Library* defaultLibrary =
@@ -64,15 +53,24 @@ void Metal::RenderPipeline::SetUp() {
     vertexName->release();
     fragmentName->release();
     defaultLibrary->release();
-};
+}
 
-void Metal::RenderPipeline::TearDown() {
+Metal::RenderPipeline::RenderPipeline(
+    LogicalDevice& aLogicalDevice, const std::string& aVertexProgramName,
+    const std::string& aFragmentProgramName,
+    const RenderPipelineParams& aRenderPipelineParams)
+    : logicalDevice(aLogicalDevice),
+      vertexProgramName(aVertexProgramName),
+      fragmentProgramName(aFragmentProgramName),
+      renderPipelineParams(aRenderPipelineParams) {}
+
+Metal::RenderPipeline::~RenderPipeline() {
     AssertD(pipelineState != nullptr);
     pipelineState->release();
     pipelineState = nullptr;
 
     LogD(eTag::kMetalAPI) << "Render Pipeline teared down" << std::endl;
-};
+}
 
 MTL::RenderPipelineState& Metal::RenderPipeline::GetRenderPipelineState()
     const {

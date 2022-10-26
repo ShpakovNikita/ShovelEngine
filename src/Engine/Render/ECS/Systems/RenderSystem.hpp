@@ -48,6 +48,8 @@ void RenderSystem<RenderBatchComponent>::Process(float /*dt*/) {
     ZoneNamedN(
         __tracy, "RenderSystem Process",
         static_cast<bool>(kActiveProfilerSystems & ProfilerSystems::ECS));
+    
+    bool renderBatchingHasStarted = false;
 
     auto renderView =
         registry.view<SHV::RenderComponent, SHV::TransformComponent>();
@@ -58,9 +60,18 @@ void RenderSystem<RenderBatchComponent>::Process(float /*dt*/) {
             registry.try_get<RenderBatchComponent>(entity);
 
         if (openGlRenderComponent == nullptr) {
+            if (!renderBatchingHasStarted) {
+                renderBatchingHasStarted = true;
+                renderBatcher->BeginRenderBatching();
+            }
+            
             // TODO: Add batch creation to a separate thread
             renderBatcher->AddRenderBatch(registry, entity, renderComponent);
         }
+    }
+    
+    if (renderBatchingHasStarted) {
+        renderBatcher->EndRenderBatching();
     }
 }
 

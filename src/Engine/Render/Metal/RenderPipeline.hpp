@@ -25,6 +25,7 @@ class RenderPipeline {
                    const std::string& vertexProgramName,
                    const std::string& fragmentProgramName,
                    const RenderPipelineParams& renderPipelineParams);
+    ~RenderPipeline();
 
     void SetUp();
     void TearDown();

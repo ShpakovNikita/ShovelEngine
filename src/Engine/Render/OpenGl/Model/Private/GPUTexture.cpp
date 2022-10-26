@@ -21,7 +21,7 @@ OpenGl::GPUTexture::GPUTexture(const std::string& texturePath) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-        if (sharedTexture->IsUsingMipmaps()) {
+        if (sharedTexture->GetMipmapUsage() != eMipmapsUsage::kNone) {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
                             GL_LINEAR_MIPMAP_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
@@ -35,8 +35,13 @@ OpenGl::GPUTexture::GPUTexture(const std::string& texturePath) {
                      sharedTexture->GetHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE,
                      sharedTexture->GetData());
 
-        if (sharedTexture->IsUsingMipmaps()) {
+        if (sharedTexture->GetMipmapUsage() == eMipmapsUsage::kGenerate) {
             glGenerateMipmap(GL_TEXTURE_2D);
+        } else if (sharedTexture->GetMipmapUsage() ==
+                   eMipmapsUsage::kLoadFromData) {
+            throw Exception(
+                "Mipmaps LoadFromData usage not supported yet in OpenGl "
+                "renderer!");
         }
     } else {
         throw Exception(
