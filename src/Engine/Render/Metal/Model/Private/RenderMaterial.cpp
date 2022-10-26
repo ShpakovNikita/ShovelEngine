@@ -7,12 +7,17 @@
 #include "Engine/Render/Metal/Shaders/PbrDefinitions.h"
 
 #include "Engine/Common/Assert.hpp"
+#include "Engine/Common/Logger.hpp"
 
 using namespace SHV;
 
 namespace SHV::Metal::SRenderMaterial {
 static const std::map<std::string, int> paramsToLocation = {
-    {"baseColor", BaseColorTexture}};
+    {"albedoMap", BaseColorTexture},
+    {"aoMap", AmbientOcclusionTexture},
+    {"heightMap", HeightMapTexture},
+    {"metallicMap", MetallicRoughnessTexture},
+    {"normalMap", NormalTexture}};
 }
 
 Metal::RenderMaterial::RenderMaterial(
@@ -22,13 +27,18 @@ Metal::RenderMaterial::RenderMaterial(
 Metal::RenderMaterial::~RenderMaterial() = default;
 
 void Metal::RenderMaterial::Bind(MTL::RenderCommandEncoder& encoder) {
+    if (invalidate) {
+        Invalidate();
+    }
+
     for (auto& [paramName, texture] : textures) {
         auto textureLocation =
             SRenderMaterial::paramsToLocation.find(paramName);
-        AssertD(textureLocation != SRenderMaterial::paramsToLocation.end());
 
-        // TODO: pass location
-        texture->Bind(encoder, textureLocation->second);
+        // TODO: not set unused textures in pipeline
+        if (textureLocation != SRenderMaterial::paramsToLocation.end()) {
+            texture->Bind(encoder, textureLocation->second);
+        }
     }
 }
 
@@ -39,4 +49,22 @@ Metal::RenderPipeline& Metal::RenderMaterial::GetRenderPipeline() const {
 void Metal::RenderMaterial::SetTexture(const std::string& paramName,
                                        std::shared_ptr<GPUTexture> texture) {
     textures[paramName] = texture;
+    invalidate = true;
+}
+
+void Metal::RenderMaterial::Invalidate() {
+    AssertD(invalidate == true);
+
+    for (auto& [paramName, texture] : textures) {
+        auto textureLocation =
+            SRenderMaterial::paramsToLocation.find(paramName);
+
+        if (textureLocation == SRenderMaterial::paramsToLocation.end()) {
+            LogW(eTag::kMetalAPI)
+                << "Failed to find texture location for param name "
+                << paramName << std::endl;
+        }
+    }
+
+    invalidate = false;
 }

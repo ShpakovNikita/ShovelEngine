@@ -1,3 +1,9 @@
 #pragma once
 
-typedef enum { BaseColorTexture = 0 } Textures;
+typedef enum {
+    BaseColorTexture = 0,
+    AmbientOcclusionTexture,
+    HeightMapTexture,
+    MetallicRoughnessTexture,
+    NormalTexture
+} Textures;

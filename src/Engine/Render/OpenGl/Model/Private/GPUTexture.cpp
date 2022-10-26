@@ -8,6 +8,21 @@
 
 using namespace SHV;
 
+namespace SHV::OpenGl::SGPUTexture {
+GLuint GetGlTextureFormat(eTextureFormat textureFormat) {
+    switch (textureFormat) {
+        case eTextureFormat::kRGBA8:
+            return GL_RGBA;
+        case eTextureFormat::kRGB8:
+            return GL_RGB8;
+        case eTextureFormat::kRG8:
+            return GL_RG;
+        case eTextureFormat::kR8:
+            return GL_RED;
+    }
+}
+}  // namespace SHV::OpenGl::SGPUTexture
+
 OpenGl::GPUTexture::GPUTexture(const std::string& texturePath) {
     texture = Engine::Get().GetResourceManager().Get<Texture>(texturePath);
 
@@ -18,8 +33,8 @@ OpenGl::GPUTexture::GPUTexture(const std::string& texturePath) {
         glGenTextures(1, &textureHandle);
         glBindTexture(GL_TEXTURE_2D, textureHandle);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
         if (sharedTexture->GetMipmapUsage() != eMipmapsUsage::kNone) {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
@@ -31,9 +46,12 @@ OpenGl::GPUTexture::GPUTexture(const std::string& texturePath) {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         }
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, sharedTexture->GetWidth(),
-                     sharedTexture->GetHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE,
-                     sharedTexture->GetData());
+        glTexImage2D(
+            GL_TEXTURE_2D, 0,
+            SGPUTexture::GetGlTextureFormat(sharedTexture->GetTextureFormat()),
+            sharedTexture->GetWidth(), sharedTexture->GetHeight(), 0,
+            SGPUTexture::GetGlTextureFormat(sharedTexture->GetTextureFormat()),
+            GL_UNSIGNED_BYTE, sharedTexture->GetData());
 
         if (sharedTexture->GetMipmapUsage() == eMipmapsUsage::kGenerate) {
             glGenerateMipmap(GL_TEXTURE_2D);

@@ -132,19 +132,30 @@ void SHV::OpenGl::ShaderProgram::Use() {
     glUseProgram(program);
 }
 
-GLuint SHV::OpenGl::ShaderProgram::GetUniformLocation(
+GLint SHV::OpenGl::ShaderProgram::GetUniformLocation(
     const std::string& uniformName) const {
     AssertD(program != 0);
     return glGetUniformLocation(program, uniformName.c_str());
 }
 
-void SHV::OpenGl::ShaderProgram::SetMat4(const std::string& uniformName,
+bool SHV::OpenGl::ShaderProgram::SetMat4(const std::string& uniformName,
                                          const glm::mat4& value) {
-    glUniformMatrix4fv(GetUniformLocation(uniformName), 1, GL_FALSE,
-                       glm::value_ptr(value));
+    GLint location = GetUniformLocation(uniformName);
+    if (location != -1) {
+        glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
+        return true;
+    }
+
+    return false;
 }
 
-void SHV::OpenGl::ShaderProgram::SetInt(const std::string& uniformName,
+bool SHV::OpenGl::ShaderProgram::SetInt(const std::string& uniformName,
                                         int value) {
-    glUniform1i(GetUniformLocation(uniformName), value);
+    GLint location = GetUniformLocation(uniformName);
+    if (location != -1) {
+        glUniform1i(GetUniformLocation(uniformName), value);
+        return true;
+    }
+
+    return false;
 }

@@ -5,7 +5,18 @@
 
 #include "stb/stb_image.h"
 
+#include <map>
+
 using namespace SHV;
+
+namespace SHV::STexture {
+static std::map<int, eTextureFormat> channelsCountToTextureFormat = {
+    {1, eTextureFormat::kR8},
+    {2, eTextureFormat::kRG8},
+    {3, eTextureFormat::kRGB8},
+    {4, eTextureFormat::kRGBA8},
+};
+}
 
 Texture::Texture(const std::string& aTexturePath) : texturePath(aTexturePath) {
     int w, h, nrChannels;
@@ -20,6 +31,14 @@ Texture::Texture(const std::string& aTexturePath) : texturePath(aTexturePath) {
     width = w;
     height = h;
     channelsCount = nrChannels;
+
+    auto textureFormatIt = STexture::channelsCountToTextureFormat.find(nrChannels);
+
+    if (textureFormatIt == STexture::channelsCountToTextureFormat.end()) {
+        throw Exception("Invalid channels number count! %i", nrChannels);
+    }
+
+    textureFormat = textureFormatIt->second;
 }
 
 Texture::~Texture() {
@@ -36,5 +55,7 @@ const std::string& Texture::GetTexturePath() const { return texturePath; }
 uint32_t Texture::GetChannelsCount() const { return channelsCount; }
 
 eMipmapsUsage Texture::GetMipmapUsage() const { return mipmapsUsage; }
+
+eTextureFormat Texture::GetTextureFormat() const { return textureFormat; }
 
 const void* Texture::GetData() const { return data; }

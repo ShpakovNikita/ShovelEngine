@@ -4,6 +4,8 @@
 
 namespace SHV {
 enum class eMipmapsUsage { kNone, kGenerate, kLoadFromData };
+// TODO: ASTC support
+enum class eTextureFormat { kRGBA8, kRGB8, kRG8, kR8 };
 
 class Texture {
    public:
@@ -14,7 +16,9 @@ class Texture {
     uint32_t GetHeight() const;
     const std::string& GetTexturePath() const;
     uint32_t GetChannelsCount() const;
+
     eMipmapsUsage GetMipmapUsage() const;
+    eTextureFormat GetTextureFormat() const;
 
     const void* GetData() const;
 
@@ -24,6 +28,7 @@ class Texture {
     uint32_t channelsCount = 0;
 
     eMipmapsUsage mipmapsUsage = eMipmapsUsage::kGenerate;
+    eTextureFormat textureFormat = eTextureFormat::kRGBA8;
 
     // TODO: remove from this class?
     void* data = nullptr;

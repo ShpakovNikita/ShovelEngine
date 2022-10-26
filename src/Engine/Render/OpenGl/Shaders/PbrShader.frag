@@ -8,10 +8,10 @@ struct Vertex {
 
 in Vertex vertex;
 
-uniform sampler2D baseColor;
+uniform sampler2D albedoMap;
 
 void main()
 {
-    vec4 baseColor = texture(baseColor, vertex.uv);
+    vec4 baseColor = texture(albedoMap, vertex.uv);
     FragColor = baseColor;
 } 

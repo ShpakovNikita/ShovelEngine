@@ -22,8 +22,12 @@ class RenderMaterial {
     ShaderProgram& GetShaderProgram() const;
 
    private:
+    void Invalidate();
+
     std::map<std::string, std::shared_ptr<GPUTexture>> textures;
     std::shared_ptr<ShaderProgram> program;
+
+    bool invalidate = true;
 };
 }  // namespace OpenGl
 }  // namespace SHV

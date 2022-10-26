@@ -14,11 +14,11 @@ class ShaderProgram {
 
     void Use();
 
-    void SetMat4(const std::string& uniformName, const glm::mat4& value);
-    void SetInt(const std::string& uniformName, int value);
+    bool SetMat4(const std::string& uniformName, const glm::mat4& value);
+    bool SetInt(const std::string& uniformName, int value);
 
    private:
-    GLuint GetUniformLocation(const std::string& uniformName) const;
+    GLint GetUniformLocation(const std::string& uniformName) const;
 
     GLuint program = 0;
 

@@ -208,6 +208,15 @@ void CreateRenderComponent(entt::registry& registry, entt::entity& entity,
 
             renderComponent.primitive = CreatePrimitive(primitive, model);
 
+            std::string valuesUvs = "";
+            for (size_t i = 0; i < renderComponent.primitive.uvs.size(); ++i) {
+                valuesUvs += "{";
+                valuesUvs += std::to_string(renderComponent.primitive.uvs[i].x);
+                valuesUvs += ",";
+                valuesUvs += std::to_string(renderComponent.primitive.uvs[i].y);
+                valuesUvs += "},";
+            }
+
             Entity::AddChild(registry, entity, primitiveNode);
         }
     }

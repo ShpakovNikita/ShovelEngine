@@ -25,8 +25,12 @@ class RenderMaterial {
     RenderPipeline& GetRenderPipeline() const;
 
    private:
+    void Invalidate();
+
     std::map<std::string, std::shared_ptr<GPUTexture>> textures;
     std::shared_ptr<RenderPipeline> pipeline;
+
+    bool invalidate = true;
 };
 }  // namespace Metal
 }  // namespace SHV

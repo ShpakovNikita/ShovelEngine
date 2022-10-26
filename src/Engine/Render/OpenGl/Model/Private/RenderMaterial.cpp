@@ -4,6 +4,7 @@
 #include "Engine/Render/OpenGl/ShaderProgram.hpp"
 
 #include "Engine/Common/Assert.hpp"
+#include "Engine/Common/Logger.hpp"
 
 using namespace SHV;
 
@@ -16,12 +17,19 @@ void OpenGl::RenderMaterial::Bind() {
     // OpenGl does not support more than 8 textures
     AssertD(textures.size() <= 8);
 
+    if (invalidate) {
+        Invalidate();
+    }
+
     uint32_t textureLocation = 0;
     for (auto& [paramName, texture] : textures) {
-        program->SetInt(paramName, textureLocation);
-        glActiveTexture(GL_TEXTURE0 + textureLocation);
-        texture->Bind();
-        ++textureLocation;
+        bool paramInitialized = program->SetInt(paramName, textureLocation);
+
+        if (paramInitialized) {
+            glActiveTexture(GL_TEXTURE0 + textureLocation);
+            texture->Bind();
+            ++textureLocation;
+        }
     }
 }
 
@@ -38,4 +46,25 @@ OpenGl::ShaderProgram& OpenGl::RenderMaterial::GetShaderProgram() const {
 void OpenGl::RenderMaterial::SetTexture(const std::string& paramName,
                                         std::shared_ptr<GPUTexture> texture) {
     textures[paramName] = texture;
+    invalidate = true;
+}
+
+void OpenGl::RenderMaterial::Invalidate() {
+    // OpenGl does not support more than 8 textures
+    AssertD(textures.size() <= 8);
+
+    AssertD(invalidate == true);
+
+    uint32_t textureLocation = 0;
+    for (auto& [paramName, texture] : textures) {
+        bool paramInitialized = program->SetInt(paramName, textureLocation);
+
+        if (!paramInitialized) {
+            LogW(eTag::kOpenGl)
+                << "Failed to find texture location for param name "
+                << paramName << std::endl;
+        }
+    }
+
+    invalidate = false;
 }

@@ -248,8 +248,16 @@ void Engine::LoadPrimitives() {
     auto cubeEntity = ObjectCreationUtils::CreateCube(registry);
     auto& renderComponent = registry.get<RenderComponent>(cubeEntity);
     renderComponent.material.materialShader = eShader::kPbrShader;
-    renderComponent.material.textures["baseColor"] =
-        resourceManager->Get<Texture>("wall.jpg");
+    renderComponent.material.textures["albedoMap"] =
+        resourceManager->Get<Texture>("sloppy-mortar-bricks_albedo.png");
+    renderComponent.material.textures["aoMap"] =
+        resourceManager->Get<Texture>("sloppy-mortar-bricks_ao.png");
+    renderComponent.material.textures["heightMap"] =
+        resourceManager->Get<Texture>("sloppy-mortar-bricks_height.png");
+    renderComponent.material.textures["metallicMap"] =
+        resourceManager->Get<Texture>("sloppy-mortar-bricks_metallic.png");
+    renderComponent.material.textures["normalMap"] =
+        resourceManager->Get<Texture>("sloppy-mortar-bricks_normal-ogl.png");
 
     Entity::AddChild(registry, scene->GetRootEntity(), cubeEntity);
 }
