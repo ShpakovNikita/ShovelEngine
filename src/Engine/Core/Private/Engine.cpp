@@ -24,7 +24,6 @@
 #include "Engine/Render/ImGuiImpl.hpp"
 #include "Engine/Render/RenderContext.hpp"
 #include "Engine/Render/Model/Material.hpp"
-#include "Engine/Render/Model/Primitive.hpp"
 #include "Engine/Render/ECS/Components/RenderComponent.hpp"
 
 #include "Engine/Tools/Toolbar.hpp"
@@ -35,6 +34,8 @@
 #include "Engine/ECS/Systems/InputSystem.hpp"
 #include "Engine/ECS/Systems/MovementSystem.hpp"
 #include "Engine/ECS/Systems/TransformSystem.hpp"
+
+#include "Engine/ECS/Utils/ObjectsCreationUtils.hpp"
 
 #include "Engine/ECS/Components/TransformComponent.hpp"
 #include "Engine/ECS/Components/MovementComponent.hpp"
@@ -244,63 +245,13 @@ void Engine::SetMutableConfig(MutableConfig& config) {
 void Engine::LoadPrimitives() {
     auto& registry = scene->GetRegistry();
 
-    // Cube
-    {
-        auto entity = registry.create();
+    auto cubeEntity = ObjectCreationUtils::CreateCube(registry);
+    auto& renderComponent = registry.get<RenderComponent>(cubeEntity);
+    renderComponent.material.materialShader = eShader::kPbrShader;
+    renderComponent.material.textures["baseColor"] =
+        resourceManager->Get<Texture>("wall.jpg");
 
-        std::shared_ptr<Material> material = std::make_shared<Material>();
-        material->materialShader = SHV::eShader::kBasicShader;
-        Primitive primitive = {material};
-
-        primitive.positions = {{0.5f, 0.5f, 0.0f, 1.0}, {0.5f, -0.5f, 0.0f, 1},
-                               {-0.5f, -0.5f, 0.0f, 1}, {-0.5f, 0.5f, 0.0f, 1},
-                               {0.5f, 0.5f, 1.0f, 1.0}, {0.5f, -0.5f, 1.0f, 1},
-                               {-0.5f, -0.5f, 1.0f, 1}, {-0.5f, 0.5f, 1.0f, 1}};
-        primitive.normals = {{0, 1.0}, {0, 1.0}, {0, 1.0}, {0, 1.0},
-                             {0, 1.0}, {0, 1.0}, {0, 1.0}, {0, 1.0}};
-        primitive.uvs = {{1.0, 1.0}, {1.0, 0}, {0, 0}, {0, 1.0},
-                         {1.0, 1.0}, {1.0, 0}, {0, 0}, {0, 1.0}};
-
-        primitive.indices = {0, 1, 3, 1, 2, 3, 0, 1, 4, 1, 4, 5,
-                             1, 5, 2, 2, 6, 5, 2, 6, 7, 7, 3, 2,
-                             3, 7, 0, 0, 7, 3, 4, 5, 7, 5, 6, 7};
-
-        auto& renderComponent = registry.emplace<RenderComponent>(entity);
-        renderComponent.material.materialShader = eShader::kPbrShader;
-        renderComponent.material.textures["baseColor"] =
-            resourceManager->Get<Texture>("wall.jpg");
-        registry.emplace<TransformComponent>(entity);
-
-        renderComponent.primitive = primitive;
-    }
-
-    /*
-    // Floor
-    {
-        auto entity = registry.create();
-
-        std::shared_ptr<Material> material = std::make_shared<Material>();
-        material->materialShader = SHV::eShader::kBasicShader;
-        Primitive primitive = {material};
-
-        primitive.positions = {{0.5f, 0.5f, 0.0f, 1.0},
-                               {0.5f, -0.5f, 0.0f, 1},
-                               {-0.5f, -0.5f, 0.0f, 1},
-                               {-0.5f, 0.5f, 0.0f, 1}};
-        primitive.normals = {{0, 1.0}, {0, 1.0}, {0, 1.0}, {0, 1.0}};
-        primitive.uvs = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
-
-        primitive.indices = {0, 1, 3, 1, 2, 3};
-
-        auto& renderComponent = registry.emplace<RenderComponent>(entity);
-        auto& transform = registry.emplace<TransformComponent>(entity);
-        transform.rotation =
-            glm::angleAxis(glm::radians(90.0f), glm::vec3(1.0f, 0.0, 0.0));
-        transform.scale = glm::vec3(2.0f);
-
-        renderComponent.primitive = primitive;
-    }
-     */
+    Entity::AddChild(registry, scene->GetRootEntity(), cubeEntity);
 }
 
 void Engine::UnloadPrimitives() {}

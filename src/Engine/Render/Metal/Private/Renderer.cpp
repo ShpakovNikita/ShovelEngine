@@ -26,6 +26,7 @@
 #include "Engine/Render/Metal/Model/GPUTexture.hpp"
 #include "Engine/Render/Metal/ECS/Components/RenderComponent.hpp"
 #include "Engine/Render/ECS/Systems/RenderSystem.hpp"
+#include "Engine/ECS/Components/RelationshipComponent.hpp"
 #include "Engine/Render/Metal/Utils/Math.hpp"
 
 #include "Metal/Metal.hpp"
@@ -81,7 +82,9 @@ void SHV::Metal::Renderer::Draw(const Scene& scene) {
         __tracy, "Metal Render Draw",
         static_cast<bool>(kActiveProfilerSystems & ProfilerSystems::Rendering));
 
-    const auto renderView = scene.GetRegistry().view<SHV::RenderComponent>();
+    const auto renderView =
+        scene.GetRegistry()
+            .view<SHV::RenderComponent, SHV::RelationshipComponent>();
 
     auto cameraEntity = scene.GetEntityWithActiveCamera();
     AssertE(cameraEntity != entt::null);
@@ -91,7 +94,14 @@ void SHV::Metal::Renderer::Draw(const Scene& scene) {
     const auto& cameraTransform =
         scene.GetRegistry().get<SHV::TransformComponent>(cameraEntity);
 
-    for (const auto& [entity, renderComponent] : renderView.each()) {
+    for (const auto& [entity, renderComponent, relationshipComponent] :
+         renderView.each()) {
+        // TODO: optimize
+        if (!Entity::IsNodesConnected(scene.GetRegistry(),
+                                      scene.GetRootEntity(), entity)) {
+            continue;
+        }
+
         const auto& metalRenderComponent =
             scene.GetRegistry().try_get<SHV::Metal::RenderComponent>(entity);
         AssertE(metalRenderComponent != nullptr &&

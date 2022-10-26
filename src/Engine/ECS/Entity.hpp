@@ -11,6 +11,10 @@ namespace Entity {
 void AddChild(entt::registry& registry, entt::entity& parent,
               entt::entity& child);
 
+bool IsNodesConnected(const entt::registry& registry,
+                      const entt::entity& rootNode,
+                      const entt::entity& childNode);
+
 template <typename ProcessorFunc>
 void SceneGraphTraversal(entt::registry& registry, entt::entity& entity,
                          const ProcessorFunc& entityProcessor);

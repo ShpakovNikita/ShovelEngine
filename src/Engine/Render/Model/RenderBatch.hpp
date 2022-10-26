@@ -6,6 +6,8 @@
 namespace SHV {
 struct Primitive;
 
+enum eBatchType { kVertexOnly, kIndices };
+
 class RenderBatch {
    public:
     RenderBatch();

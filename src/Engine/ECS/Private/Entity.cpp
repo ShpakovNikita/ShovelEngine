@@ -10,13 +10,17 @@ void Entity::AddChild(entt::registry& registry, entt::entity& parent,
                       entt::entity& child) {
     auto& parentRelationship =
         registry.get_or_emplace<RelationshipComponent>(parent);
-    // registry.get_or_emplace<TransformComponent>(parent);
+    auto& parentTransformComponent =
+        registry.get_or_emplace<TransformComponent>(parent);
 
     auto& childRelationship =
         registry.get_or_emplace<RelationshipComponent>(child);
-    // registry.get_or_emplace<TransformComponent>(child);
+    auto& childTransformComponent =
+        registry.get_or_emplace<TransformComponent>(child);
 
     childRelationship.parent = parent;
+    childTransformComponent.parentWorldMatrix =
+        parentTransformComponent.GetWorldMatrix();
 
     if (parentRelationship.first == entt::null) {
         parentRelationship.first = child;
@@ -33,4 +37,21 @@ void Entity::AddChild(entt::registry& registry, entt::entity& parent,
         currRelationship.next = child;
         childRelationship.prev = currEntity;
     }
+}
+
+bool Entity::IsNodesConnected(const entt::registry& registry,
+                              const entt::entity& rootNode,
+                              const entt::entity& childNode) {
+    auto relationshipComponent =
+        registry.try_get<RelationshipComponent>(childNode);
+    while (relationshipComponent != nullptr &&
+           relationshipComponent->parent != entt::null) {
+        if (relationshipComponent->parent == rootNode) {
+            return true;
+        }
+        relationshipComponent =
+            registry.try_get<RelationshipComponent>(childNode);
+    }
+
+    return false;
 }

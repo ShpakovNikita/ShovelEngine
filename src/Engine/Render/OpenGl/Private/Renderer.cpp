@@ -12,7 +12,6 @@
 #include "Engine/Common/Exception.hpp"
 #include "Engine/Common/ProfilerSystems.hpp"
 
-#include "Engine/Render/Model/Material.hpp"
 #include "Engine/Render/OpenGl/Model/RenderBatch.hpp"
 #include "Engine/Render/OpenGl/ShaderProgram.hpp"
 #include "Engine/Render/OpenGl/WindowContext.hpp"
@@ -90,6 +89,12 @@ void SHV::OpenGl::Renderer::Draw(const Scene& scene) {
         scene.GetRegistry().get<SHV::TransformComponent>(cameraEntity);
 
     for (const auto& [entity, renderComponent] : renderView.each()) {
+        // TODO: optimize
+        if (!Entity::IsNodesConnected(scene.GetRegistry(),
+                                      scene.GetRootEntity(), entity)) {
+            continue;
+        }
+
         const auto& openGlRenderComponent =
             scene.GetRegistry().try_get<SHV::OpenGl::RenderComponent>(entity);
         AssertE(openGlRenderComponent != nullptr &&
