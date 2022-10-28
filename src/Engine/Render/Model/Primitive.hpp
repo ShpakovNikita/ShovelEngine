@@ -6,11 +6,8 @@
 #include "AABBox.hpp"
 
 namespace SHV {
-struct Material;
-
 struct Primitive {
     Primitive();
-    Primitive(std::shared_ptr<Material> material);
 
     std::vector<Uv> uvs;
     std::vector<Uv> uvs1;  // Additional UV Layout
@@ -20,7 +17,5 @@ struct Primitive {
     std::vector<uint32_t> indices;
 
     AABBox bbox;
-
-    std::shared_ptr<Material> material;
 };
 }  // namespace SHV

@@ -7,6 +7,7 @@
 #include "tiny_gltf.h"
 
 #include "Engine/Render/Model/Material.hpp"
+#include "Engine/Render/Model/ShaderParamNames.hpp"
 #include "Engine/Render/ECS/Components/RenderComponent.hpp"
 #include "Engine/ECS/Components/TransformComponent.hpp"
 #include "Engine/ECS/Scene.hpp"
@@ -180,8 +181,6 @@ void FillPrimitiveIndices(Primitive& resultPrimitive,
 Primitive CreatePrimitive(const tinygltf::Primitive& primitive,
                           const tinygltf::Model& model) {
     Primitive resultPrimitive;
-    resultPrimitive.material = std::make_shared<Material>();
-
     bool hasIndices = primitive.indices > -1;
 
     FillPrimitiveVertices(resultPrimitive, primitive, model);
@@ -193,9 +192,160 @@ Primitive CreatePrimitive(const tinygltf::Primitive& primitive,
     return resultPrimitive;
 }
 
+// from GLTF2 specs
+TextureSampler::eAddressMode GetAddressMode(int32_t wrapMode) {
+    switch (wrapMode) {
+        case 10497:
+            return TextureSampler::eAddressMode::kRepeat;
+        case 33071:
+            return TextureSampler::eAddressMode::kClampToEdge;
+        case 33648:
+            return TextureSampler::eAddressMode::kClampToBorder;
+        default:
+            return TextureSampler::eAddressMode::kRepeat;
+    }
+}
+
+// from GLTF2 specs
+TextureSampler::eFilter GetFilter(int32_t filterMode) {
+    switch (filterMode) {
+        case 9728:
+            return TextureSampler::eFilter::kNearest;
+        case 9729:
+            return TextureSampler::eFilter::kLinear;
+        case 9984:
+            return TextureSampler::eFilter::kNearest;
+        case 9985:
+            return TextureSampler::eFilter::kNearest;
+        case 9986:
+            return TextureSampler::eFilter::kLinear;
+        case 9987:
+            return TextureSampler::eFilter::kLinear;
+        default:
+            return TextureSampler::eFilter::kNearest;
+    }
+}
+
+void LoadTextureSamplers(const tinygltf::Model& input,
+                         std::vector<TextureSampler>& textureSamplers) {
+    for (tinygltf::Sampler smpl : input.samplers) {
+        TextureSampler sampler;
+        sampler.minFilter = GetFilter(smpl.minFilter);
+        sampler.magFilter = GetFilter(smpl.magFilter);
+        sampler.addressModeU = GetAddressMode(smpl.wrapS);
+        sampler.addressModeV = GetAddressMode(smpl.wrapT);
+        sampler.addressModeW = sampler.addressModeV;
+        textureSamplers.push_back(sampler);
+    }
+}
+
+void LoadTextures(const tinygltf::Model& input,
+                  std::vector<std::shared_ptr<Texture>>& textures,
+                  const std::vector<TextureSampler>& textureSamplers) {
+    textures.reserve(input.textures.size());
+
+    textures.reserve(input.textures.size());
+
+    for (const tinygltf::Texture& tex : input.textures) {
+        const tinygltf::Image& image [[maybe_unused]] =
+            input.images[tex.source];
+        TextureSampler textureSampler;
+        if (tex.sampler != -1) {
+            textureSampler = textureSamplers[tex.sampler];
+        }
+        std::shared_ptr<Texture> texture = std::make_shared<Texture>(
+            &image.image[0], image.width, image.height, image.component,
+            image.component == 3 ? eTextureFormat::kRGB8
+                                 : eTextureFormat::kRGBA8,
+            textureSampler);
+        textures.push_back(texture);
+    }
+}
+
+void LoadMaterials(const tinygltf::Model& input,
+                   std::vector<Material>& materials,
+                   const std::vector<std::shared_ptr<Texture>>& textures) {
+    materials.reserve(input.materials.size());
+
+    for (const tinygltf::Material& mat : input.materials) {
+        Material material;
+        material.materialShader = eMaterialShader::kPbrShader;
+
+        if (mat.values.find("baseColorTexture") != mat.values.end()) {
+            material.textures[SHV::PbrParams::kAlbedoMap] =
+                textures[mat.values.at("baseColorTexture").TextureIndex()];
+            /* TODO: get texture uv location, for now just uv0
+            material->texCoordSets.baseColor =
+                mat.values.at("baseColorTexture").TextureTexCoord();
+                */
+        }
+        if (mat.values.find("metallicRoughnessTexture") != mat.values.end()) {
+            material.textures[SHV::PbrParams::kMetallicRoughnessMap] =
+                textures[mat.values.at("metallicRoughnessTexture")
+                             .TextureIndex()];
+        }
+        if (mat.values.find("roughnessFactor") != mat.values.end()) {
+            material.params[SHV::PbrParams::kRoughnessFactor] =
+                static_cast<float>(mat.values.at("roughnessFactor").Factor());
+        }
+        if (mat.values.find("metallicFactor") != mat.values.end()) {
+            material.params[SHV::PbrParams::kMetallicFactor] =
+                static_cast<float>(mat.values.at("metallicFactor").Factor());
+        }
+        if (mat.values.find("baseColorFactor") != mat.values.end()) {
+            material.params[SHV::PbrParams::kBaseColorFactor] = glm::make_vec4(
+                mat.values.at("baseColorFactor").ColorFactor().data());
+        }
+        if (mat.additionalValues.find("normalTexture") !=
+            mat.additionalValues.end()) {
+            material.textures[SHV::PbrParams::kNormalMap] =
+                textures[mat.additionalValues.at("normalTexture")
+                             .TextureIndex()];
+        }
+        if (mat.additionalValues.find("emissiveTexture") !=
+            mat.additionalValues.end()) {
+            material.textures[SHV::PbrParams::kEmissiveMap] =
+                textures[mat.additionalValues.at("emissiveTexture")
+                             .TextureIndex()];
+        }
+        if (mat.additionalValues.find("occlusionTexture") !=
+            mat.additionalValues.end()) {
+            material.textures[SHV::PbrParams::kAoMap] =
+                textures[mat.additionalValues.at("occlusionTexture")
+                             .TextureIndex()];
+        }
+        if (mat.additionalValues.find("alphaMode") !=
+            mat.additionalValues.end()) {
+            tinygltf::Parameter param = mat.additionalValues.at("alphaMode");
+            if (param.string_value == "BLEND") {
+                material.alphaMode = eAlphaMode::kBlend;
+            }
+            if (param.string_value == "MASK") {
+                material.alphaCutoff = 0.5f;
+                material.alphaMode = eAlphaMode::kMask;
+            }
+        }
+        if (mat.additionalValues.find("alphaCutoff") !=
+            mat.additionalValues.end()) {
+            material.alphaCutoff = static_cast<float>(
+                mat.additionalValues.at("alphaCutoff").Factor());
+        }
+        if (mat.additionalValues.find("emissiveFactor") !=
+            mat.additionalValues.end()) {
+            material.params[SHV::PbrParams::kEmissiveFactor] = glm::vec4(
+                glm::make_vec3(mat.additionalValues.at("emissiveFactor")
+                                   .ColorFactor()
+                                   .data()),
+                1.0);
+        }
+        materials.push_back(std::move(material));
+    }
+}
+
 void CreateRenderComponent(entt::registry& registry, entt::entity& entity,
                            const tinygltf::Node& node,
-                           const tinygltf::Model& model) {
+                           const tinygltf::Model& model,
+                           const std::vector<Material>& materials) {
     // Node contains mesh data
     if (node.mesh > -1) {
         const tinygltf::Mesh mesh = model.meshes[node.mesh];
@@ -204,18 +354,11 @@ void CreateRenderComponent(entt::registry& registry, entt::entity& entity,
             const tinygltf::Primitive& primitive = mesh.primitives[j];
 
             auto primitiveNode = registry.create();
-            auto& renderComponent = registry.emplace<RenderComponent>(entity);
-
+            auto& renderComponent =
+                registry.emplace<RenderComponent>(primitiveNode);
+            
             renderComponent.primitive = CreatePrimitive(primitive, model);
-
-            std::string valuesUvs = "";
-            for (size_t i = 0; i < renderComponent.primitive.uvs.size(); ++i) {
-                valuesUvs += "{";
-                valuesUvs += std::to_string(renderComponent.primitive.uvs[i].x);
-                valuesUvs += ",";
-                valuesUvs += std::to_string(renderComponent.primitive.uvs[i].y);
-                valuesUvs += "},";
-            }
+            renderComponent.material = materials[primitive.material];
 
             Entity::AddChild(registry, entity, primitiveNode);
         }
@@ -223,17 +366,18 @@ void CreateRenderComponent(entt::registry& registry, entt::entity& entity,
 }
 
 void LoadNode(entt::registry& registry, entt::entity& parent,
-              const tinygltf::Node& node, const tinygltf::Model& model) {
+              const tinygltf::Node& node, const tinygltf::Model& model,
+              const std::vector<Material>& materials) {
     auto entityNode = registry.create();
 
     CreateTransformComponent(registry, entityNode, node);
-    CreateRenderComponent(registry, entityNode, node, model);
+    CreateRenderComponent(registry, entityNode, node, model, materials);
 
     // Node with children
     if (node.children.size() > 0) {
         for (size_t i = 0; i < node.children.size(); i++) {
-            LoadNode(registry, entityNode, model.nodes[node.children[i]],
-                     model);
+            LoadNode(registry, entityNode, model.nodes[node.children[i]], model,
+                     materials);
         }
     }
 
@@ -283,10 +427,19 @@ void SHV::LoadGltfModelToScene(Scene& scene, const std::string& modelFilePath) {
 
     const tinygltf::Scene& gltfScene =
         model.scenes[model.defaultScene > -1 ? model.defaultScene : 0];
+
+    std::vector<TextureSampler> textureSamplers;
+    std::vector<std::shared_ptr<Texture>> textures;
+    std::vector<Material> materials;
+
+    SLoadGltfModelToScene::LoadTextureSamplers(model, textureSamplers);
+    SLoadGltfModelToScene::LoadTextures(model, textures, textureSamplers);
+    SLoadGltfModelToScene::LoadMaterials(model, materials, textures);
+
     for (size_t i = 0; i < gltfScene.nodes.size(); i++) {
         const tinygltf::Node node = model.nodes[gltfScene.nodes[i]];
         SLoadGltfModelToScene::LoadNode(scene.GetRegistry(), rootNode, node,
-                                        model);
+                                        model, materials);
     }
 
     Entity::AddChild(scene.GetRegistry(), scene.GetRootEntity(), rootNode);

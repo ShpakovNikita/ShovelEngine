@@ -22,7 +22,8 @@ void CameraSystem::Process(float /*dt*/) {
     const glm::vec2 viewportSize = window.GetWindowSize();
 
     for (auto&& [entity, cameraComponent] : renderView.each()) {
-        cameraComponent.projection = glm::perspective(
-            glm::radians(45.0f), viewportSize.x / viewportSize.y, 0.1f, 100.0f);
+        cameraComponent.projection =
+            glm::perspective(cameraComponent.cameraFOV,
+                             viewportSize.x / viewportSize.y, 0.1f, 100.0f);
     }
 }

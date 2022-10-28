@@ -13,7 +13,9 @@ Metal::RenderPipeline::RenderPipeline(LogicalDevice& aLogicalDevice,
                                       const std::string& aFragmentProgramName)
     : Metal::RenderPipeline(aLogicalDevice, aVertexProgramName,
                             aFragmentProgramName, {}) {
-    LogD(eTag::kMetalAPI) << "Setting up Render Pipeline" << std::endl;
+    LogD(eTag::kMetalAPI) << "Creating up Render Pipeline for vertex: "
+                          << aVertexProgramName
+                          << " fragment: " << aFragmentProgramName << std::endl;
 
     MTL::Library* defaultLibrary =
         logicalDevice.GetDevice().newDefaultLibrary();
@@ -69,7 +71,7 @@ Metal::RenderPipeline::~RenderPipeline() {
     pipelineState->release();
     pipelineState = nullptr;
 
-    LogD(eTag::kMetalAPI) << "Render Pipeline teared down" << std::endl;
+    LogD(eTag::kMetalAPI) << "Render Pipeline destroyed" << std::endl;
 }
 
 MTL::RenderPipelineState& Metal::RenderPipeline::GetRenderPipelineState()

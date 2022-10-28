@@ -7,6 +7,7 @@
 #include "Engine/Render/Metal/Model/RenderMaterial.hpp"
 #include "Engine/Render/Metal/RenderPipelineCache.hpp"
 #include "Engine/Render/Metal/CommandQueue.hpp"
+#include "Engine/Render/Model/Texture.hpp"
 
 #include "Metal/Metal.hpp"
 
@@ -17,7 +18,6 @@ Metal::RenderBatcher::RenderBatcher(LogicalDevice& aLogicalDevice,
     : ::SHV::RenderBatcher(),
       logicalDevice(aLogicalDevice),
       commandQueue(aCommandQueue),
-      gpuTexturesCache(std::make_unique<ResourceCache<GPUTexture>>()),
       pipelineCache(std::make_unique<RenderPipelineCache>(aLogicalDevice)) {}
 
 void Metal::RenderBatcher::BeginRenderBatching() {
@@ -41,14 +41,24 @@ void Metal::RenderBatcher::AddRenderBatch(
     auto& metalRenderComponent =
         registry.emplace<SHV::Metal::RenderComponent>(entity);
     metalRenderComponent.renderBatch =
-        Metal::RenderBatch::Create(logicalDevice, renderComponent.primitive);
+        Metal::RenderBatch::Create(logicalDevice, renderComponent.primitive,
+                                   renderComponent.material.materialShader);
 
     metalRenderComponent.renderMaterial = std::make_shared<RenderMaterial>(
         pipelineCache->Get(renderComponent.material.materialShader));
 
     for (auto& [param, texture] : renderComponent.material.textures) {
-        auto gpuTexture = gpuTexturesCache->Get(
-            texture->GetTexturePath(), logicalDevice, *blitCommandEncoder);
+        auto gpuTextureIt = gpuTexturesCache.find(texture.get());
+        std::shared_ptr<GPUTexture> gpuTexture = nullptr;
+
+        if (gpuTextureIt == gpuTexturesCache.end()) {
+            gpuTexture = std::make_shared<GPUTexture>(texture, logicalDevice,
+                                                      *blitCommandEncoder);
+            gpuTexturesCache[texture.get()] = gpuTexture;
+        } else {
+            gpuTexture = gpuTextureIt->second;
+        }
+
         metalRenderComponent.renderMaterial->SetTexture(param, gpuTexture);
     }
 }

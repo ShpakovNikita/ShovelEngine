@@ -6,6 +6,7 @@ namespace MTL {
 class Texture;
 class RenderCommandEncoder;
 class BlitCommandEncoder;
+class SamplerState;
 }  // namespace MTL
 
 namespace SHV {
@@ -16,7 +17,7 @@ class LogicalDevice;
 
 class GPUTexture {
    public:
-    GPUTexture(const std::string& texturePath, LogicalDevice& logicalDevice,
+    GPUTexture(std::weak_ptr<Texture> texture, LogicalDevice& logicalDevice,
                MTL::BlitCommandEncoder& blitCommandEncoder);
     ~GPUTexture();
 
@@ -25,6 +26,7 @@ class GPUTexture {
    private:
     std::weak_ptr<Texture> texture;
     MTL::Texture* metalTexture;
+    MTL::SamplerState* metalSamplerState;
     LogicalDevice& logicalDevice;
 };
 }  // namespace Metal

@@ -4,10 +4,5 @@
 #include "Engine/Render/Model/Material.hpp"
 
 namespace SHV {
-struct RenderComponent {
-    Primitive primitive;
-    Material material;
-
-    bool isVisible = true;
-};
+struct SkyboxComponent {};
 }  // namespace SHV

@@ -24,6 +24,7 @@
 #include "Engine/Render/ImGuiImpl.hpp"
 #include "Engine/Render/RenderContext.hpp"
 #include "Engine/Render/Model/Material.hpp"
+#include "Engine/Render/Model/ShaderParamNames.hpp"
 #include "Engine/Render/ECS/Components/RenderComponent.hpp"
 
 #include "Engine/Tools/Toolbar.hpp"
@@ -243,23 +244,25 @@ void Engine::SetMutableConfig(MutableConfig& config) {
 }
 
 void Engine::LoadPrimitives() {
+    /*
     auto& registry = scene->GetRegistry();
 
     auto cubeEntity = ObjectCreationUtils::CreateCube(registry);
     auto& renderComponent = registry.get<RenderComponent>(cubeEntity);
-    renderComponent.material.materialShader = eShader::kPbrShader;
-    renderComponent.material.textures["albedoMap"] =
+    renderComponent.material.materialShader = eMaterialShader::kPbrShader;
+    renderComponent.material.textures[SHV::PbrParams::kAlbedoMap] =
         resourceManager->Get<Texture>("sloppy-mortar-bricks_albedo.png");
-    renderComponent.material.textures["aoMap"] =
+    renderComponent.material.textures[SHV::PbrParams::kAoMap] =
         resourceManager->Get<Texture>("sloppy-mortar-bricks_ao.png");
-    renderComponent.material.textures["heightMap"] =
+    renderComponent.material.textures[SHV::PbrParams::kHeightMap] =
         resourceManager->Get<Texture>("sloppy-mortar-bricks_height.png");
-    renderComponent.material.textures["metallicMap"] =
+    renderComponent.material.textures[SHV::PbrParams::kMetallicRoughnessMap] =
         resourceManager->Get<Texture>("sloppy-mortar-bricks_metallic.png");
-    renderComponent.material.textures["normalMap"] =
+    renderComponent.material.textures[SHV::PbrParams::kNormalMap] =
         resourceManager->Get<Texture>("sloppy-mortar-bricks_normal-ogl.png");
 
     Entity::AddChild(registry, scene->GetRootEntity(), cubeEntity);
+     */
 }
 
 void Engine::UnloadPrimitives() {}

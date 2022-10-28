@@ -21,11 +21,37 @@ GLuint GetGlTextureFormat(eTextureFormat textureFormat) {
             return GL_RED;
     }
 }
+
+GLuint GetGlTextureAddressMode(TextureSampler::eAddressMode mode) {
+    switch (mode) {
+        case TextureSampler::eAddressMode::kClampToBorder:
+            return GL_CLAMP_TO_BORDER;
+        case TextureSampler::eAddressMode::kClampToEdge:
+            return GL_CLAMP_TO_EDGE;
+        case TextureSampler::eAddressMode::kRepeat:
+            return GL_REPEAT;
+    }
+}
+
+GLuint GetGlTextureFilter(TextureSampler::eFilter filter,
+                          TextureSampler::eFilter mipFilter) {
+    if (filter == TextureSampler::eFilter::kNearest &&
+        mipFilter == TextureSampler::eFilter::kNearest) {
+        return GL_NEAREST_MIPMAP_NEAREST;
+    } else if (filter == TextureSampler::eFilter::kLinear &&
+               mipFilter == TextureSampler::eFilter::kNearest) {
+        return GL_LINEAR_MIPMAP_NEAREST;
+    } else if (filter == TextureSampler::eFilter::kNearest &&
+               mipFilter == TextureSampler::eFilter::kLinear) {
+        return GL_NEAREST_MIPMAP_LINEAR;
+    } else {
+        return GL_LINEAR_MIPMAP_LINEAR;
+    }
+}
 }  // namespace SHV::OpenGl::SGPUTexture
 
-OpenGl::GPUTexture::GPUTexture(const std::string& texturePath) {
-    texture = Engine::Get().GetResourceManager().Get<Texture>(texturePath);
-
+OpenGl::GPUTexture::GPUTexture(std::weak_ptr<Texture> aTexture)
+    : texture(aTexture) {
     if (auto sharedTexture = texture.lock()) {
         AssertD(sharedTexture != nullptr &&
                 sharedTexture->GetData() != nullptr);
@@ -33,18 +59,21 @@ OpenGl::GPUTexture::GPUTexture(const std::string& texturePath) {
         glGenTextures(1, &textureHandle);
         glBindTexture(GL_TEXTURE_2D, textureHandle);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
+                        SGPUTexture::GetGlTextureAddressMode(
+                            sharedTexture->GetTextureSampler().addressModeU));
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
+                        SGPUTexture::GetGlTextureAddressMode(
+                            sharedTexture->GetTextureSampler().addressModeV));
 
-        if (sharedTexture->GetMipmapUsage() != eMipmapsUsage::kNone) {
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                            GL_LINEAR_MIPMAP_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-                            GL_LINEAR_MIPMAP_LINEAR);
-        } else {
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        }
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                        SGPUTexture::GetGlTextureFilter(
+                            sharedTexture->GetTextureSampler().minFilter,
+                            sharedTexture->GetTextureSampler().mipMinFilter));
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+                        SGPUTexture::GetGlTextureFilter(
+                            sharedTexture->GetTextureSampler().magFilter,
+                            sharedTexture->GetTextureSampler().mipMagFilter));
 
         glTexImage2D(
             GL_TEXTURE_2D, 0,

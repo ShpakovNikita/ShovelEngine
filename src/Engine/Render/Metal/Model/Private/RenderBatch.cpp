@@ -51,14 +51,15 @@ Metal::RenderBatch Metal::RenderBatch::Create(Metal::LogicalDevice& device,
     return renderBatch;
 }
 
-Metal::RenderBatch Metal::RenderBatch::Create(Metal::LogicalDevice& device,
-                                              const Primitive& primitive) {
+Metal::RenderBatch Metal::RenderBatch::Create(
+    Metal::LogicalDevice& device, const Primitive& primitive,
+    const eMaterialShader shaderLayout) {
     ZoneNamedN(
         __tracy, "Metal RenderBatch Create",
         static_cast<bool>(kActiveProfilerSystems & ProfilerSystems::Rendering));
 
     // TODO: some type smart refactor
-    switch (primitive.material->materialShader) {
+    switch (shaderLayout) {
         case kPbrShader:
         case kBasicShader:
             const size_t vertexCount = primitive.positions.size();

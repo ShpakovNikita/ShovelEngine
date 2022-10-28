@@ -97,7 +97,8 @@ void SHV::Metal::Renderer::Draw(const Scene& scene) {
     for (const auto& [entity, renderComponent, relationshipComponent] :
          renderView.each()) {
         // TODO: optimize
-        if (!Entity::IsNodesConnected(scene.GetRegistry(),
+        if (!renderComponent.isVisible ||
+            !Entity::IsNodesConnected(scene.GetRegistry(),
                                       scene.GetRootEntity(), entity)) {
             continue;
         }

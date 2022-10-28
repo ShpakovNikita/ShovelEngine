@@ -71,15 +71,14 @@ OpenGl::RenderBatch OpenGl::RenderBatch::Create(const void* data,
     return renderBatch;
 }
 
-OpenGl::RenderBatch OpenGl::RenderBatch::Create(const Primitive& primitive) {
+OpenGl::RenderBatch OpenGl::RenderBatch::Create(
+    const Primitive& primitive, const eMaterialShader shaderLayout) {
     ZoneNamedN(
         __tracy, "OpenGl RenderBatch Create",
         static_cast<bool>(kActiveProfilerSystems & ProfilerSystems::Rendering));
 
-    AssertD(primitive.material != nullptr);
-
     // TODO: some type smart refactor
-    switch (primitive.material->materialShader) {
+    switch (shaderLayout) {
         case kPbrShader:
         case kBasicShader:
             const size_t vertexCount = primitive.positions.size();

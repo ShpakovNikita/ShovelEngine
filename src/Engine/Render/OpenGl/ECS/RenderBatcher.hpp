@@ -24,7 +24,7 @@ class RenderBatcher : public ::SHV::RenderBatcher {
         entt::registry& registry);
 
    private:
-    std::unique_ptr<ResourceCache<GPUTexture>> gpuTexturesCache;
+    std::map<Texture*, std::shared_ptr<GPUTexture>> gpuTexturesCache;
     std::unique_ptr<ShaderCache> shaderCache;
 };
 }  // namespace SHV::OpenGl

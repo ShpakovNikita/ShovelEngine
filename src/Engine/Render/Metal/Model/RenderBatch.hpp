@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "Engine/Render/Model/RenderBatch.hpp"
+#include "Engine/Render/Model/MaterialShader.hpp"
 
 namespace MTL {
 class Buffer;
@@ -19,8 +20,8 @@ class RenderBatch : public SHV::RenderBatch {
     RenderBatch();
     virtual ~RenderBatch();
 
-    static RenderBatch Create(LogicalDevice& device,
-                              const Primitive& primitive);
+    static RenderBatch Create(LogicalDevice& device, const Primitive& primitive,
+                              const eMaterialShader shaderLayout);
 
     inline size_t GetVertexCount() const { return vertexCount; }
     inline size_t GetIndexCount() const { return indexCount; }

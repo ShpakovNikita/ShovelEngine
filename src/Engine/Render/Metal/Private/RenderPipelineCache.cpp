@@ -11,7 +11,7 @@ Metal::RenderPipelineCache::RenderPipelineCache(LogicalDevice& aLogicalDevice)
 Metal::RenderPipelineCache::~RenderPipelineCache() = default;
 
 const std::shared_ptr<Metal::RenderPipeline> Metal::RenderPipelineCache::Get(
-    eShader shader) {
+    eMaterialShader shader) {
     auto it = cache.find(shader);
     if (it != cache.end()) {
         return it->second;
@@ -23,12 +23,12 @@ const std::shared_ptr<Metal::RenderPipeline> Metal::RenderPipelineCache::Get(
 }
 
 std::shared_ptr<Metal::RenderPipeline>
-Metal::RenderPipelineCache::CreateRenderPipeline(eShader shader) {
+Metal::RenderPipelineCache::CreateRenderPipeline(eMaterialShader shader) {
     switch (shader) {
-        case eShader::kPbrShader:
+        case eMaterialShader::kPbrShader:
             return std::make_shared<RenderPipeline>(logicalDevice, "pbr_vertex",
                                                     "pbr_fragment");
-        case eShader::kBasicShader:
+        case eMaterialShader::kBasicShader:
             return std::make_shared<RenderPipeline>(
                 logicalDevice, "basic_vertex", "basic_fragment");
     }

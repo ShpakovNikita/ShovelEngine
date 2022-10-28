@@ -14,12 +14,13 @@ class RenderPipelineCache {
     RenderPipelineCache(LogicalDevice& logicalDevice);
     ~RenderPipelineCache();
 
-    const std::shared_ptr<RenderPipeline> Get(eShader shader);
+    const std::shared_ptr<RenderPipeline> Get(eMaterialShader shader);
 
    private:
-    std::shared_ptr<RenderPipeline> CreateRenderPipeline(eShader shader);
+    std::shared_ptr<RenderPipeline> CreateRenderPipeline(
+        eMaterialShader shader);
 
-    std::map<eShader, std::shared_ptr<RenderPipeline>> cache;
+    std::map<eMaterialShader, std::shared_ptr<RenderPipeline>> cache;
 
     LogicalDevice& logicalDevice;
 };

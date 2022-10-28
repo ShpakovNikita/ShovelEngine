@@ -12,9 +12,7 @@ using namespace SHV;
 entt::entity ObjectCreationUtils::CreateCube(entt::registry& registry) {
     auto entity = registry.create();
 
-    std::shared_ptr<Material> material = std::make_shared<Material>();
-    material->materialShader = SHV::eShader::kBasicShader;
-    Primitive primitive = {material};
+    Primitive primitive = {};
 
     primitive.positions = {{-0.5, -0.5, 0.5, 1.0},  {0.5, -0.5, 0.5, 1.0},
                            {-0.5, 0.5, 0.5, 1.0},   {0.5, 0.5, 0.5, 1.0},

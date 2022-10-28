@@ -13,12 +13,12 @@ class ShaderCache {
     ShaderCache();
     ~ShaderCache();
 
-    const std::shared_ptr<ShaderProgram> Get(eShader shader);
+    const std::shared_ptr<ShaderProgram> Get(eMaterialShader shader);
 
    private:
-    std::shared_ptr<ShaderProgram> CreateShaderProgram(eShader shader);
+    std::shared_ptr<ShaderProgram> CreateShaderProgram(eMaterialShader shader);
 
-    std::map<eShader, std::shared_ptr<ShaderProgram>> cache;
+    std::map<eMaterialShader, std::shared_ptr<ShaderProgram>> cache;
 };
 }  // namespace OpenGl
 }  // namespace SHV

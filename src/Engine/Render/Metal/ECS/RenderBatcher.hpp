@@ -2,16 +2,20 @@
 
 #include <entt/entity/registry.hpp>
 
-#include "Engine/Render/ECS/RenderBatcher.hpp"
+#include <map>
 
-#include "Engine/Core/Resources/ResourceCache.hpp"
+#include "Engine/Render/ECS/RenderBatcher.hpp"
 
 namespace MTL {
 class CommandBuffer;
 class BlitCommandEncoder;
 }  // namespace MTL
 
-namespace SHV::Metal {
+namespace SHV {
+
+class Texture;
+
+namespace Metal {
 class LogicalDevice;
 class GPUTexture;
 class RenderPipelineCache;
@@ -35,10 +39,11 @@ class RenderBatcher : public ::SHV::RenderBatcher {
    private:
     LogicalDevice& logicalDevice;
     CommandQueue& commandQueue;
-    std::unique_ptr<ResourceCache<GPUTexture>> gpuTexturesCache;
+    std::map<Texture*, std::shared_ptr<GPUTexture>> gpuTexturesCache;
     std::unique_ptr<RenderPipelineCache> pipelineCache;
 
     MTL::CommandBuffer* resourcesCommandBuffer = nullptr;
     MTL::BlitCommandEncoder* blitCommandEncoder = nullptr;
 };
-}  // namespace SHV::Metal
+}  // namespace Metal
+}  // namespace SHV

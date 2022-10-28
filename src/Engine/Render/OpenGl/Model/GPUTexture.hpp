@@ -10,7 +10,7 @@ namespace SHV {
 namespace OpenGl {
 class GPUTexture {
    public:
-    GPUTexture(const std::string& texturePath);
+    GPUTexture(std::weak_ptr<Texture> texture);
     ~GPUTexture();
 
     void Bind();

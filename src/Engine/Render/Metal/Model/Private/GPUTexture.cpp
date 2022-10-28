@@ -31,7 +31,7 @@ void GetMappedDataRGBA8(u_char* dstImageData, Texture& texture) {
                 texture.GetChannelsCount() /* srcBytesPerPixel*/ *
                 (srcRow * texture.GetWidth() + srcColumn);
             uint32_t dstPixelIndex = 4 * (y * texture.GetWidth() + x);
-            
+
             // Set the alpha channel of the destination pixel to 255
             dstImageData[dstPixelIndex + 0] = srcImageData[srcPixelIndex + 0];
             dstImageData[dstPixelIndex + 1] = srcImageData[srcPixelIndex + 1];
@@ -61,14 +61,43 @@ MTL::PixelFormat GetMTLTextureFormat(eTextureFormat textureFormat) {
             return MTL::PixelFormat::PixelFormatR8Unorm;
     }
 }
+
+MTL::SamplerMinMagFilter GetMTLMinMagFilter(TextureSampler::eFilter filter) {
+    switch (filter) {
+        case TextureSampler::eFilter::kLinear:
+            return MTL::SamplerMinMagFilter::SamplerMinMagFilterLinear;
+        case TextureSampler::eFilter::kNearest:
+            return MTL::SamplerMinMagFilter::SamplerMinMagFilterNearest;
+    }
+}
+
+MTL::SamplerMipFilter GetMTLMipFilter(TextureSampler::eFilter filter) {
+    switch (filter) {
+        case TextureSampler::eFilter::kLinear:
+            return MTL::SamplerMipFilter::SamplerMipFilterLinear;
+        case TextureSampler::eFilter::kNearest:
+            return MTL::SamplerMipFilter::SamplerMipFilterNearest;
+    }
+}
+
+MTL::SamplerAddressMode GetMTLSamplerAddressMode(
+    TextureSampler::eAddressMode mode) {
+    switch (mode) {
+        case TextureSampler::eAddressMode::kClampToBorder:
+            return MTL::SamplerAddressMode::
+                SamplerAddressModeClampToBorderColor;
+        case TextureSampler::eAddressMode::kClampToEdge:
+            return MTL::SamplerAddressMode::SamplerAddressModeClampToEdge;
+        case TextureSampler::eAddressMode::kRepeat:
+            return MTL::SamplerAddressMode::SamplerAddressModeRepeat;
+    }
+}
 }  // namespace SHV::Metal::SGPUTexture
 
-SHV::Metal::GPUTexture::GPUTexture(const std::string& texturePath,
+SHV::Metal::GPUTexture::GPUTexture(std::weak_ptr<Texture> aTexture,
                                    LogicalDevice& aLogicalDevice,
                                    MTL::BlitCommandEncoder& blitCommandEncoder)
-    : logicalDevice(aLogicalDevice) {
-    texture = Engine::Get().GetResourceManager().Get<Texture>(texturePath);
-
+    : texture(aTexture), logicalDevice(aLogicalDevice) {
     if (auto sharedTexture = texture.lock()) {
         AssertD(sharedTexture != nullptr &&
                 sharedTexture->GetData() != nullptr);
@@ -93,6 +122,8 @@ SHV::Metal::GPUTexture::GPUTexture(const std::string& texturePath,
         }
 
         metalTexture = logicalDevice.GetDevice().newTexture(textureDescr);
+        textureDescr->release();
+
         MTL::Region region = MTL::Region::Make2D(
             0, 0, sharedTexture->GetWidth(), sharedTexture->GetHeight());
         uint32_t bytesPerRow = 4 * sharedTexture->GetWidth();
@@ -108,6 +139,28 @@ SHV::Metal::GPUTexture::GPUTexture(const std::string& texturePath,
             metalTexture->replaceRegion(region, 0, sharedTexture->GetData(),
                                         bytesPerRow);
         }
+
+        auto textureSampler = sharedTexture->GetTextureSampler();
+        auto samplerDescriptor = MTL::SamplerDescriptor::alloc()->init();
+
+        samplerDescriptor->setMinFilter(
+            SGPUTexture::GetMTLMinMagFilter(textureSampler.minFilter));
+        samplerDescriptor->setMagFilter(
+            SGPUTexture::GetMTLMinMagFilter(textureSampler.magFilter));
+
+        samplerDescriptor->setSAddressMode(
+            SGPUTexture::GetMTLSamplerAddressMode(textureSampler.addressModeU));
+        samplerDescriptor->setTAddressMode(
+            SGPUTexture::GetMTLSamplerAddressMode(textureSampler.addressModeV));
+
+        if (sharedTexture->GetMipmapUsage() != eMipmapsUsage::kNone) {
+            samplerDescriptor->setMipFilter(
+                SGPUTexture::GetMTLMipFilter(textureSampler.mipMinFilter));
+        }
+
+        metalSamplerState =
+            logicalDevice.GetDevice().newSamplerState(samplerDescriptor);
+        samplerDescriptor->release();
 
         if (sharedTexture->GetMipmapUsage() == eMipmapsUsage::kGenerate) {
             blitCommandEncoder.generateMipmaps(metalTexture);
@@ -129,4 +182,5 @@ SHV::Metal::GPUTexture::~GPUTexture() { metalTexture->release(); }
 void SHV::Metal::GPUTexture::Bind(MTL::RenderCommandEncoder& encoder,
                                   int location) {
     encoder.setFragmentTexture(metalTexture, location);
+    encoder.setFragmentSamplerState(metalSamplerState, location);
 }

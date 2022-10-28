@@ -49,8 +49,8 @@ bool Entity::IsNodesConnected(const entt::registry& registry,
         if (relationshipComponent->parent == rootNode) {
             return true;
         }
-        relationshipComponent =
-            registry.try_get<RelationshipComponent>(childNode);
+        relationshipComponent = registry.try_get<RelationshipComponent>(
+            relationshipComponent->parent);
     }
 
     return false;

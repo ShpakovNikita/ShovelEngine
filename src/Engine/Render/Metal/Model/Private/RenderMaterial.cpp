@@ -5,6 +5,7 @@
 
 #include "Engine/Render/Metal/Shaders/ShaderDefinitions.h"
 #include "Engine/Render/Metal/Shaders/PbrDefinitions.h"
+#include "Engine/Render/Model/ShaderParamNames.hpp"
 
 #include "Engine/Common/Assert.hpp"
 #include "Engine/Common/Logger.hpp"
@@ -13,11 +14,11 @@ using namespace SHV;
 
 namespace SHV::Metal::SRenderMaterial {
 static const std::map<std::string, int> paramsToLocation = {
-    {"albedoMap", BaseColorTexture},
-    {"aoMap", AmbientOcclusionTexture},
-    {"heightMap", HeightMapTexture},
-    {"metallicMap", MetallicRoughnessTexture},
-    {"normalMap", NormalTexture}};
+    {SHV::PbrParams::kAlbedoMap, BaseColorTexture},
+    {SHV::PbrParams::kAoMap, AmbientOcclusionTexture},
+    {SHV::PbrParams::kHeightMap, HeightMapTexture},
+    {SHV::PbrParams::kMetallicRoughnessMap, MetallicRoughnessTexture},
+    {SHV::PbrParams::kNormalMap, NormalTexture}};
 }
 
 Metal::RenderMaterial::RenderMaterial(

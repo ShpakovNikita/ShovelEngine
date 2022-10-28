@@ -9,7 +9,7 @@ OpenGl::ShaderCache::ShaderCache() = default;
 OpenGl::ShaderCache::~ShaderCache() = default;
 
 const std::shared_ptr<OpenGl::ShaderProgram> OpenGl::ShaderCache::Get(
-    eShader shader) {
+    eMaterialShader shader) {
     auto it = cache.find(shader);
     if (it != cache.end()) {
         return it->second;
@@ -21,11 +21,11 @@ const std::shared_ptr<OpenGl::ShaderProgram> OpenGl::ShaderCache::Get(
 }
 
 std::shared_ptr<OpenGl::ShaderProgram> OpenGl::ShaderCache::CreateShaderProgram(
-    eShader shader) {
+    eMaterialShader shader) {
     switch (shader) {
-        case eShader::kPbrShader:
+        case eMaterialShader::kPbrShader:
             return std::make_shared<ShaderProgram>("PbrShader");
-        case eShader::kBasicShader:
+        case eMaterialShader::kBasicShader:
             return std::make_shared<ShaderProgram>("BasicShader");
     }
 }

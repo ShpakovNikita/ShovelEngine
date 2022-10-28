@@ -24,10 +24,7 @@ vertex VertexOut pbr_vertex(const device BasicVertexLayout *vertexArray [[buffer
   return out;
 }
 
-fragment float4 pbr_fragment(VertexOut interpolated [[stage_in]], texture2d<half, access::sample> colorTexture [[ texture(BaseColorTexture) ]]) {
-    constexpr sampler textureSampler (mag_filter::linear,
-                                      min_filter::linear);
-
+fragment float4 pbr_fragment(VertexOut interpolated [[stage_in]], texture2d<half, access::sample> colorTexture [[ texture(BaseColorTexture) ]], sampler textureSampler [[ sampler(BaseColorTexture) ]]) {
     const half4 colorSample = colorTexture.sample(textureSampler, interpolated.uv);
 
     return float4(colorSample.rgba);

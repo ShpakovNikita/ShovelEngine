@@ -3,6 +3,7 @@
 #include <GL/glew.h>
 
 #include "Engine/Render/Model/RenderBatch.hpp"
+#include "Engine/Render/Model/MaterialShader.hpp"
 
 #include <cstddef>
 #include <memory>
@@ -17,7 +18,8 @@ class RenderBatch : public SHV::RenderBatch {
     ~RenderBatch();
     RenderBatch();
 
-    static RenderBatch Create(const Primitive& primitive);
+    static RenderBatch Create(const Primitive& primitive,
+                              const eMaterialShader shaderLayout);
 
     inline size_t GetVertexCount() const { return vertexCount; }
     inline size_t GetIndexCount() const { return indexCount; }

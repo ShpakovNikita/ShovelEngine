@@ -10,22 +10,30 @@
 using namespace SHV;
 
 OpenGl::RenderBatcher::RenderBatcher()
-    : gpuTexturesCache(std::make_unique<ResourceCache<GPUTexture>>()),
-      shaderCache(std::make_unique<ShaderCache>()) {}
+    : shaderCache(std::make_unique<ShaderCache>()) {}
 
 void OpenGl::RenderBatcher::AddRenderBatch(
     entt::registry& registry, entt::entity& entity,
     const SHV::RenderComponent& renderComponent) {
     auto& openGlRenderComponent =
         registry.emplace<SHV::OpenGl::RenderComponent>(entity);
-    openGlRenderComponent.renderBatch =
-        OpenGl::RenderBatch::Create(renderComponent.primitive);
+    openGlRenderComponent.renderBatch = OpenGl::RenderBatch::Create(
+        renderComponent.primitive, renderComponent.material.materialShader);
 
     openGlRenderComponent.renderMaterial = std::make_shared<RenderMaterial>(
         shaderCache->Get(renderComponent.material.materialShader));
 
     for (auto& [param, texture] : renderComponent.material.textures) {
-        auto gpuTexture = gpuTexturesCache->Get(texture->GetTexturePath());
+        auto gpuTextureIt = gpuTexturesCache.find(texture.get());
+        std::shared_ptr<GPUTexture> gpuTexture = nullptr;
+        
+        if (gpuTextureIt == gpuTexturesCache.end()) {
+            gpuTexture = std::make_shared<GPUTexture>(texture);
+            gpuTexturesCache[texture.get()] = gpuTexture;
+        } else {
+            gpuTexture = gpuTextureIt->second;
+        }
+
         openGlRenderComponent.renderMaterial->SetTexture(param, gpuTexture);
     }
 }
