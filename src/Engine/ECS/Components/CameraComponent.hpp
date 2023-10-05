@@ -19,12 +19,14 @@ struct CameraComponent {
 
     glm::mat4 projection{1.0f};
 
+    // TODO: remove when fix bug with quaternion conversion back and forth
+    glm::vec3 cameraRotation = glm::vec3(0.0f, 0.0f, 0.0f);
+
     glm::mat4 GetViewMatrix(
         const TransformComponent& transformComponent) const {
-        const glm::vec3 cameraFrontRotated =
-            transformComponent.rotation * cameraFront;
-        const glm::vec3 cameraUpRotated =
-            transformComponent.rotation * cameraUp;
+        const glm::quat cameraRotQuat = cameraRotation;
+        const glm::vec3 cameraFrontRotated = cameraRotQuat * cameraFront;
+        const glm::vec3 cameraUpRotated = cameraRotQuat * cameraUp;
         return glm::lookAt(transformComponent.translation,
                            transformComponent.translation + cameraFrontRotated,
                            cameraUpRotated);

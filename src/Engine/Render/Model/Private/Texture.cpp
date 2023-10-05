@@ -2,6 +2,7 @@
 #include "Engine/Core/Engine.hpp"
 #include "Engine/Core/FileSystem.hpp"
 #include "Engine/Common/Exception.hpp"
+#include "Engine/Render/Model/Utils/TextureUtils.hpp"
 
 #include "stb/stb_image.h"
 
@@ -10,31 +11,102 @@
 using namespace SHV;
 
 namespace SHV::STexture {
-static std::map<int, eTextureFormat> channelsCountToTextureFormat = {
-    {1, eTextureFormat::kR8},
-    {2, eTextureFormat::kRG8},
-    {3, eTextureFormat::kRGB8},
-    {4, eTextureFormat::kRGBA8},
+static std::map<int, eTextureFormat>
+    channelsCountToTextureFormatForOneByteFormat = {
+        {1, eTextureFormat::kR8},
+        {2, eTextureFormat::kRG8},
+        {3, eTextureFormat::kRGBA8},
+        {4, eTextureFormat::kRGBA8},
 };
+
+static std::map<int, eTextureFormat>
+    channelsCountToTextureFormatForFloatFormat = {
+        {3, eTextureFormat::kRGBA32F},
+        {4, eTextureFormat::kRGBA32F},
+};
+
+eTextureFormat GetTextureFormat(uint32_t channelsCount,
+                                uint32_t bytesPerChannel) {
+    if (bytesPerChannel == 1) {
+        auto textureFormatIt =
+            channelsCountToTextureFormatForOneByteFormat.find(channelsCount);
+
+        if (textureFormatIt ==
+            channelsCountToTextureFormatForOneByteFormat.end()) {
+            throw Exception(
+                "Invalid channels number count for one byte per channel type! "
+                "%i",
+                channelsCount);
+        }
+
+        return textureFormatIt->second;
+    } else if (bytesPerChannel == sizeof(float)) {
+        auto textureFormatIt =
+            channelsCountToTextureFormatForFloatFormat.find(channelsCount);
+
+        if (textureFormatIt ==
+            channelsCountToTextureFormatForFloatFormat.end()) {
+            throw Exception(
+                "Invalid channels number count for float channel type! "
+                "%i",
+                channelsCount);
+        }
+
+        return textureFormatIt->second;
+    }
+
+    throw Exception(
+        "Invalid channels number count for one byte per channel type! %i",
+        channelsCount);
 }
 
+void* GetConvertedData(eTextureFormat textureFormat, uint32_t height,
+                       uint32_t width, uint32_t& channelsCount,
+                       uint32_t bytesPerChannel, const void* src) {
+    if (textureFormat == eTextureFormat::kRGBA8 && channelsCount == 3) {
+        channelsCount = 4;
+        return SHV::TextureUtils::RemapTextureDataOneByte(
+            static_cast<const unsigned char*>(src), width, height, 3, 4);
+    } else if (textureFormat == eTextureFormat::kRGBA32F &&
+               channelsCount == 3) {
+        channelsCount = 4;
+        return SHV::TextureUtils::RemapTextureDataFloat(
+            static_cast<const unsigned char*>(src), width, height, 3, 4);
+    } else {
+        void* data =
+            std::malloc(width * height * channelsCount * bytesPerChannel);
+        std::memcpy(data, src,
+                    width * height * channelsCount * bytesPerChannel);
+        return data;
+    }
+};
+}  // namespace SHV::STexture
+
 Texture::Texture(const void* aData, uint32_t aWidth, uint32_t aHeight,
-                 uint32_t aChannelsCount, eTextureFormat aTextureFormat,
+                 uint32_t aChannelsCount, uint32_t aBytesPerChannel,
                  TextureSampler aTextureSampler)
     : width(aWidth),
       height(aHeight),
       channelsCount(aChannelsCount),
-      textureFormat(aTextureFormat),
+      bytesPerChannel(aBytesPerChannel),
       textureSampler(aTextureSampler) {
-    data = std::malloc(width * height * channelsCount);
-    std::memcpy(data, aData, width * height * channelsCount);
+    textureFormat = STexture::GetTextureFormat(channelsCount, bytesPerChannel);
+    data = STexture::GetConvertedData(textureFormat, height, width,
+                                      channelsCount, bytesPerChannel, aData);
 }
 
 Texture::Texture(const std::string& aTexturePath) : texturePath(aTexturePath) {
     int w, h, nrChannels;
     const std::string filePath =
         Engine::Get().GetFileSystem().GetPath(texturePath);
-    void* stbData = stbi_load(filePath.c_str(), &w, &h, &nrChannels, 0);
+
+    void* stbData = nullptr;
+    if (stbi_is_hdr(filePath.c_str())) {
+        stbData = stbi_loadf(filePath.c_str(), &w, &h, &nrChannels, 0);
+        bytesPerChannel = sizeof(float);
+    } else {
+        stbData = stbi_load(filePath.c_str(), &w, &h, &nrChannels, 0);
+    }
 
     if (!stbData) {
         throw Exception("Failed to load texture %s", texturePath.c_str());
@@ -44,17 +116,10 @@ Texture::Texture(const std::string& aTexturePath) : texturePath(aTexturePath) {
     height = h;
     channelsCount = nrChannels;
 
-    auto textureFormatIt =
-        STexture::channelsCountToTextureFormat.find(nrChannels);
+    textureFormat = STexture::GetTextureFormat(nrChannels, bytesPerChannel);
 
-    if (textureFormatIt == STexture::channelsCountToTextureFormat.end()) {
-        throw Exception("Invalid channels number count! %i", nrChannels);
-    }
-
-    textureFormat = textureFormatIt->second;
-
-    data = std::malloc(width * height * channelsCount);
-    std::memcpy(data, stbData, width * height * channelsCount);
+    data = STexture::GetConvertedData(textureFormat, height, width,
+                                      channelsCount, bytesPerChannel, stbData);
     stbi_image_free(stbData);
 }
 
@@ -70,6 +135,8 @@ uint32_t Texture::GetHeight() const { return height; }
 const std::string& Texture::GetTexturePath() const { return texturePath; }
 
 uint32_t Texture::GetChannelsCount() const { return channelsCount; }
+
+uint32_t Texture::GetBytesPerChannel() const { return bytesPerChannel; }
 
 eMipmapsUsage Texture::GetMipmapUsage() const { return mipmapsUsage; }
 

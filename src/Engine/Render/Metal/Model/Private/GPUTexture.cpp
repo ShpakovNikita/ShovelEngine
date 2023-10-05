@@ -1,5 +1,6 @@
 #include "Engine/Render/Metal/Model/GPUTexture.hpp"
 
+#include "Engine/Render/Model/Utils/TextureUtils.hpp"
 #include "Engine/Render/Metal/LogicalDevice.hpp"
 #include "Engine/Render/Metal/Shaders/ShaderDefinitions.h"
 
@@ -14,51 +15,16 @@
 using namespace SHV;
 
 namespace SHV::Metal::SGPUTexture {
-void GetMappedDataRGBA8(u_char* dstImageData, Texture& texture) {
-    const u_char* srcImageData = static_cast<const u_char*>(texture.GetData());
-
-    // For every row of the image
-    for (uint32_t y = 0; y < texture.GetHeight(); ++y) {
-        uint32_t srcRow = y;
-
-        // For every column of the current row
-        for (uint32_t x = 0; x < texture.GetWidth(); ++x) {
-            uint32_t srcColumn = x;
-
-            // Calculate the index for the first byte of the pixel you're
-            // converting in both the source and destination images
-            uint32_t srcPixelIndex =
-                texture.GetChannelsCount() /* srcBytesPerPixel*/ *
-                (srcRow * texture.GetWidth() + srcColumn);
-            uint32_t dstPixelIndex = 4 * (y * texture.GetWidth() + x);
-
-            // Set the alpha channel of the destination pixel to 255
-            dstImageData[dstPixelIndex + 0] = srcImageData[srcPixelIndex + 0];
-            dstImageData[dstPixelIndex + 1] = srcImageData[srcPixelIndex + 1];
-            dstImageData[dstPixelIndex + 2] = srcImageData[srcPixelIndex + 2];
-
-            dstImageData[dstPixelIndex + 3] = 255;
-
-            if (texture.GetChannelsCount() == 4) {
-                dstImageData[dstPixelIndex + 3] =
-                    srcImageData[srcPixelIndex + 3];
-            } else {
-                dstImageData[dstPixelIndex + 3] = 255;
-            }
-        }
-    }
-}
-
 MTL::PixelFormat GetMTLTextureFormat(eTextureFormat textureFormat) {
     switch (textureFormat) {
         case eTextureFormat::kRGBA8:
-            return MTL::PixelFormat::PixelFormatRGBA8Unorm;
-        case eTextureFormat::kRGB8:
             return MTL::PixelFormat::PixelFormatRGBA8Unorm;
         case eTextureFormat::kRG8:
             return MTL::PixelFormat::PixelFormatRG8Unorm;
         case eTextureFormat::kR8:
             return MTL::PixelFormat::PixelFormatR8Unorm;
+        case eTextureFormat::kRGBA32F:
+            return MTL::PixelFormat::PixelFormatRGBA32Float;
     }
 }
 
@@ -126,19 +92,12 @@ SHV::Metal::GPUTexture::GPUTexture(std::weak_ptr<Texture> aTexture,
 
         MTL::Region region = MTL::Region::Make2D(
             0, 0, sharedTexture->GetWidth(), sharedTexture->GetHeight());
-        uint32_t bytesPerRow = 4 * sharedTexture->GetWidth();
+        uint32_t bytesPerRow = sharedTexture->GetBytesPerChannel() *
+                               sharedTexture->GetChannelsCount() *
+                               sharedTexture->GetWidth();
 
-        if (sharedTexture->GetTextureFormat() == eTextureFormat::kRGB8) {
-            u_char* dstImageData = static_cast<u_char*>(std::malloc(
-                sharedTexture->GetWidth() * sharedTexture->GetHeight() * 4));
-            SHV::Metal::SGPUTexture::GetMappedDataRGBA8(dstImageData,
-                                                        *sharedTexture);
-            metalTexture->replaceRegion(region, 0, dstImageData, bytesPerRow);
-            std::free(dstImageData);
-        } else {
-            metalTexture->replaceRegion(region, 0, sharedTexture->GetData(),
-                                        bytesPerRow);
-        }
+        metalTexture->replaceRegion(region, 0, sharedTexture->GetData(),
+                                    bytesPerRow);
 
         auto textureSampler = sharedTexture->GetTextureSampler();
         auto samplerDescriptor = MTL::SamplerDescriptor::alloc()->init();

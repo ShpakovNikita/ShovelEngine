@@ -5,7 +5,8 @@
 namespace SHV {
 enum class eMipmapsUsage { kNone, kGenerate, kLoadFromData };
 // TODO: ASTC support
-enum class eTextureFormat { kRGBA8, kRGB8, kRG8, kR8 };
+
+enum class eTextureFormat { kRGBA8, kRG8, kR8, kRGBA32F };
 
 // TODO: Use in renderers
 struct TextureSampler {
@@ -14,7 +15,7 @@ struct TextureSampler {
 
     eFilter magFilter = eFilter::kLinear;
     eFilter minFilter = eFilter::kLinear;
-    
+
     eFilter mipMagFilter = eFilter::kLinear;
     eFilter mipMinFilter = eFilter::kLinear;
 
@@ -27,7 +28,7 @@ class Texture {
    public:
     Texture(const std::string& texturePath);
     Texture(const void* data, uint32_t width, uint32_t height,
-            uint32_t channelsCount, eTextureFormat textureFormat,
+            uint32_t channelsCount, uint32_t bytesPerChannel,
             TextureSampler textureSampler = {});
     ~Texture();
 
@@ -35,6 +36,7 @@ class Texture {
     uint32_t GetHeight() const;
     const std::string& GetTexturePath() const;
     uint32_t GetChannelsCount() const;
+    uint32_t GetBytesPerChannel() const;
 
     eMipmapsUsage GetMipmapUsage() const;
     eTextureFormat GetTextureFormat() const;
@@ -47,6 +49,7 @@ class Texture {
     std::string texturePath = {};
     uint32_t width = 0, height = 0;
     uint32_t channelsCount = 0;
+    uint32_t bytesPerChannel = 1;
 
     eMipmapsUsage mipmapsUsage = eMipmapsUsage::kGenerate;
     eTextureFormat textureFormat = eTextureFormat::kRGBA8;

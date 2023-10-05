@@ -120,7 +120,8 @@ void SHV::OpenGl::Renderer::Draw(const Scene& scene) {
         renderBatch.Bind();
         openGlRenderComponent->renderMaterial->Bind();
 
-        glDrawElements(GL_TRIANGLES, renderBatch.GetIndexCount(),
+        glDrawElements(GL_TRIANGLES,
+                       static_cast<GLsizei>(renderBatch.GetIndexCount()),
                        GL_UNSIGNED_INT, 0);
 
         openGlRenderComponent->renderMaterial->Unbind();

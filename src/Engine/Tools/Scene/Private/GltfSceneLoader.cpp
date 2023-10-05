@@ -254,9 +254,7 @@ void LoadTextures(const tinygltf::Model& input,
             textureSampler = textureSamplers[tex.sampler];
         }
         std::shared_ptr<Texture> texture = std::make_shared<Texture>(
-            &image.image[0], image.width, image.height, image.component,
-            image.component == 3 ? eTextureFormat::kRGB8
-                                 : eTextureFormat::kRGBA8,
+            &image.image[0], image.width, image.height, image.component, 1,
             textureSampler);
         textures.push_back(texture);
     }
@@ -356,7 +354,7 @@ void CreateRenderComponent(entt::registry& registry, entt::entity& entity,
             auto primitiveNode = registry.create();
             auto& renderComponent =
                 registry.emplace<RenderComponent>(primitiveNode);
-            
+
             renderComponent.primitive = CreatePrimitive(primitive, model);
             renderComponent.material = materials[primitive.material];
 

@@ -244,7 +244,6 @@ void Engine::SetMutableConfig(MutableConfig& config) {
 }
 
 void Engine::LoadPrimitives() {
-    /*
     auto& registry = scene->GetRegistry();
 
     auto cubeEntity = ObjectCreationUtils::CreateCube(registry);
@@ -261,8 +260,10 @@ void Engine::LoadPrimitives() {
     renderComponent.material.textures[SHV::PbrParams::kNormalMap] =
         resourceManager->Get<Texture>("sloppy-mortar-bricks_normal-ogl.png");
 
+    renderComponent.material.textures[SHV::PbrParams::kNormalMap] =
+        resourceManager->Get<Texture>("belfast_sunset_puresky_4k.hdr");
+
     Entity::AddChild(registry, scene->GetRootEntity(), cubeEntity);
-     */
 }
 
 void Engine::UnloadPrimitives() {}

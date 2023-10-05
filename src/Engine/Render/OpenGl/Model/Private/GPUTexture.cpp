@@ -9,16 +9,22 @@
 using namespace SHV;
 
 namespace SHV::OpenGl::SGPUTexture {
-GLuint GetGlTextureFormat(eTextureFormat textureFormat) {
+struct GlTextureFormat {
+    GLuint internalFormat;  // Format in which we want OpenGl to interpret data
+    GLenum format;          // Format to pass data
+    GLenum type;            // Data type of passed data
+};
+
+GlTextureFormat GetGlTextureFormat(eTextureFormat textureFormat) {
     switch (textureFormat) {
         case eTextureFormat::kRGBA8:
-            return GL_RGBA;
-        case eTextureFormat::kRGB8:
-            return GL_RGB8;
+            return {GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE};
         case eTextureFormat::kRG8:
-            return GL_RG;
+            return {GL_RG8, GL_RG, GL_UNSIGNED_BYTE};
         case eTextureFormat::kR8:
-            return GL_RED;
+            return {GL_R8, GL_RED, GL_UNSIGNED_BYTE};
+        case eTextureFormat::kRGBA32F:
+            return {GL_RGBA32F, GL_RGBA, GL_FLOAT};
     }
 }
 
@@ -75,12 +81,13 @@ OpenGl::GPUTexture::GPUTexture(std::weak_ptr<Texture> aTexture)
                             sharedTexture->GetTextureSampler().magFilter,
                             sharedTexture->GetTextureSampler().mipMagFilter));
 
-        glTexImage2D(
-            GL_TEXTURE_2D, 0,
-            SGPUTexture::GetGlTextureFormat(sharedTexture->GetTextureFormat()),
-            sharedTexture->GetWidth(), sharedTexture->GetHeight(), 0,
-            SGPUTexture::GetGlTextureFormat(sharedTexture->GetTextureFormat()),
-            GL_UNSIGNED_BYTE, sharedTexture->GetData());
+        const SGPUTexture::GlTextureFormat glTextureFormat =
+            SGPUTexture::GetGlTextureFormat(sharedTexture->GetTextureFormat());
+
+        glTexImage2D(GL_TEXTURE_2D, 0, glTextureFormat.internalFormat,
+                     sharedTexture->GetWidth(), sharedTexture->GetHeight(), 0,
+                     glTextureFormat.format, glTextureFormat.type,
+                     sharedTexture->GetData());
 
         if (sharedTexture->GetMipmapUsage() == eMipmapsUsage::kGenerate) {
             glGenerateMipmap(GL_TEXTURE_2D);
