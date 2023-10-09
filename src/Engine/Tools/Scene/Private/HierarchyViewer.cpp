@@ -4,10 +4,25 @@
 
 #include "Engine/ECS/Entity.hpp"
 #include "Engine/ECS/Components/RootComponent.hpp"
+#include "Engine/ECS/Components/NameComponent.hpp"
 
 #include "imgui.h"
 
+#include <sstream>
+
 using namespace SHV;
+
+namespace SHierarchyViewer {
+    std::string GetNodeName(entt::entity& entity, entt::registry& registry) {
+        auto nameComponent = registry.try_get<NameComponent>(entity);
+        if (nameComponent != nullptr) {
+            return nameComponent->name;
+        }
+        std::ostringstream oss;
+        oss << "<entity_node_" << static_cast<uint64_t>(entity) << ">";
+        return oss.str();
+    }
+}
 
 HierarchyViewer::HierarchyViewer(entt::registry& aRegistry)
     : registry(aRegistry) {}
@@ -34,12 +49,14 @@ void HierarchyViewer::DrawNode(entt::entity& entity) {
 
     // We are in leaf
     if (child == entt::null) {
-        ImGui::BulletText("Entity Node %i", entity);
+        std::string name = SHierarchyViewer::GetNodeName(entity, registry);
+        ImGui::BulletText(name.c_str(), "");
         return;
     }
 
+    std::string name = SHierarchyViewer::GetNodeName(entity, registry);
     bool nodeOpen =
-        ImGui::TreeNodeEx((void*)(intptr_t)entity, 0, "Entity Node %i", entity);
+        ImGui::TreeNodeEx((void*)(intptr_t)entity, 0, name.c_str(), "");
 
     if (nodeOpen) {
         auto curr = child;

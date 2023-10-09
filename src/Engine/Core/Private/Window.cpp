@@ -9,7 +9,9 @@
 
 using namespace SHV;
 
-Window::Window(const WindowConfig& aConfig) : config(aConfig){};
+Window::Window(const WindowConfig& aConfig) : config(aConfig){
+    inputManager = std::make_unique<InputManager>();
+};
 Window::~Window() = default;
 
 SDL_Window& Window::GetWindow() const {
@@ -36,16 +38,17 @@ void Window::SetUp() {
         throw SHV::Exception("Window could not be created! SDL_Error: %s\n",
                              SDL_GetError());
     }
-
-    inputManager = std::make_unique<InputManager>();
+    
+    inputManager->SetUp();
 }
 
 void Window::TearDown() {
     AssertD(window != nullptr);
-
-    inputManager = nullptr;
+    
+    inputManager->TearDown();
 
     SDL_DestroyWindow(window);
+    window = nullptr;
 }
 
 const WindowConfig& Window::GetWindowConfig() const { return config; }

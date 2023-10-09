@@ -114,10 +114,13 @@ std::string GetShadersDir() {
 }  // namespace SHV::OpenGl::SShaderProgram
 
 SHV::OpenGl::ShaderProgram::ShaderProgram(const std::string& programName)
+: ShaderProgram(programName + ".vert", programName + ".frag") {}
+
+SHV::OpenGl::ShaderProgram::ShaderProgram(const std::string& vertexShaderName, const std::string& fragmentShaderName)
     : vertexShaderPath(SHV::OpenGl::SShaderProgram::GetShadersDir() +
-                       programName + ".vert"),
+                       vertexShaderName),
       fragmentShaderPath(SHV::OpenGl::SShaderProgram::GetShadersDir() +
-                         programName + ".frag") {
+                         fragmentShaderName) {
     program = SHV::OpenGl::SShaderProgram::CreateProgram(vertexShaderPath,
                                                          fragmentShaderPath);
 }

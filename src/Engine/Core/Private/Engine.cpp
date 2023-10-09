@@ -26,6 +26,8 @@
 #include "Engine/Render/Model/Material.hpp"
 #include "Engine/Render/Model/ShaderParamNames.hpp"
 #include "Engine/Render/ECS/Components/RenderComponent.hpp"
+#include "Engine/Render/ECS/Components/SkyboxComponent.hpp"
+#include "Engine/Render/ECS/Systems/SkyboxSystem.hpp"
 
 #include "Engine/Tools/Toolbar.hpp"
 
@@ -42,6 +44,7 @@
 #include "Engine/ECS/Components/MovementComponent.hpp"
 #include "Engine/ECS/Components/CameraComponent.hpp"
 #include "Engine/ECS/Components/InputComponent.hpp"
+#include "Engine/ECS/Components/NameComponent.hpp"
 
 using namespace SHV;
 
@@ -259,10 +262,19 @@ void Engine::LoadPrimitives() {
         resourceManager->Get<Texture>("sloppy-mortar-bricks_metallic.png");
     renderComponent.material.textures[SHV::PbrParams::kNormalMap] =
         resourceManager->Get<Texture>("sloppy-mortar-bricks_normal-ogl.png");
+    renderComponent.isVisible = false;
 
-    renderComponent.material.textures[SHV::PbrParams::kNormalMap] =
-        resourceManager->Get<Texture>("belfast_sunset_puresky_4k.hdr");
+    auto& nameComponent = registry.emplace<SHV::NameComponent>(cubeEntity);
+    nameComponent.name = "Cube";
 
+    auto skyboxEntity = registry.create();
+    auto& skyboxComponent = registry.emplace<SkyboxComponent>(skyboxEntity);
+    auto& skyboxNameComponent = registry.emplace<SHV::NameComponent>(skyboxEntity);
+    skyboxNameComponent.name = "Skybox";
+
+    skyboxComponent.equirectangularTexture = resourceManager->Get<Texture>("belfast_sunset_puresky_4k.hdr");
+
+    Entity::AddChild(registry, scene->GetRootEntity(), skyboxEntity);
     Entity::AddChild(registry, scene->GetRootEntity(), cubeEntity);
 }
 
@@ -275,6 +287,7 @@ void Engine::CreateScene() {
     scene->AddSystem<MovementSystem>();
     scene->AddSystem<TransformSystem>();
     scene->AddSystem<CameraSystem>(renderContext->GetWindow());
+    scene->AddSystem<SkyboxSystem>(*renderContext);
 
     renderContext->GetRenderer().SetUpScene(*scene);
 
@@ -286,6 +299,7 @@ void Engine::DestroyScene() {
 
     renderContext->GetRenderer().TearDownScene(*scene);
 
+    scene->RemoveSystem<SkyboxSystem>();
     scene->RemoveSystem<CameraSystem>();
     scene->RemoveSystem<TransformSystem>();
     scene->RemoveSystem<MovementSystem>();
@@ -301,6 +315,8 @@ void Engine::CreateCharacter() {
     registry.emplace<InputComponent>(character);
     registry.emplace<MovementComponent>(character);
     registry.emplace<CameraComponent>(character);
+    auto& nameComponent = registry.emplace<NameComponent>(character);
+    nameComponent.name = "Camera";
 
     Entity::AddChild(registry, scene->GetRootEntity(), character);
 }

@@ -17,3 +17,8 @@ static std::string kMetallicFactor = "metallicFactor";
 static std::string kBaseColorFactor = "baseColorFactor";
 static std::string kEmissiveFactor = "emissiveFactor";
 }  // namespace SHV::PbrParams
+
+namespace SHV::SkyboxParams {
+// Texture maps
+static std::string kSkyboxMap = "skyboxMap";
+}  // namespace SHV::SkyboxParams

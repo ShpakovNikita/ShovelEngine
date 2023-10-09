@@ -22,6 +22,7 @@ class GPUTexture {
     ~GPUTexture();
 
     void Bind(MTL::RenderCommandEncoder& encoder, int location);
+    std::shared_ptr<Texture> MakeTexture() const;
 
    private:
     std::weak_ptr<Texture> texture;

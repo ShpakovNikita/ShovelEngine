@@ -27,5 +27,9 @@ std::shared_ptr<OpenGl::ShaderProgram> OpenGl::ShaderCache::CreateShaderProgram(
             return std::make_shared<ShaderProgram>("PbrShader");
         case eMaterialShader::kBasicShader:
             return std::make_shared<ShaderProgram>("BasicShader");
+        case eMaterialShader::kSkyboxShader:
+            return std::make_shared<ShaderProgram>("SkyboxShader");
+        case eMaterialShader::kSkyboxEquirectangularShader:
+            return std::make_shared<ShaderProgram>("SkyboxShader.vert", "SkyboxEquirectangularShader.frag");
     }
 }

@@ -55,14 +55,14 @@ void SHV::OpenGl::Renderer::SetUp() {
 
 void SHV::OpenGl::Renderer::TearDown() {}
 
-void SHV::OpenGl::Renderer::SetUpScene(Scene& scene) {
+void SHV::OpenGl::Renderer::SetUpScene(Scene& scene) const {
     std::unique_ptr<SHV::RenderBatcher> renderBatcher =
         std::make_unique<SHV::OpenGl::RenderBatcher>();
     scene.AddSystem<SHV::RenderSystem<SHV::OpenGl::RenderComponent>>(
         std::move(renderBatcher));
 }
 
-void SHV::OpenGl::Renderer::TearDownScene(Scene& scene) {
+void SHV::OpenGl::Renderer::TearDownScene(Scene& scene) const {
     scene.RemoveSystem<SHV::RenderSystem<SHV::OpenGl::RenderComponent>>();
 }
 
@@ -127,6 +127,11 @@ void SHV::OpenGl::Renderer::Draw(const Scene& scene) {
         openGlRenderComponent->renderMaterial->Unbind();
         renderBatch.Unbind();
     }
+}
+
+std::shared_ptr<SHV::Texture> SHV::OpenGl::Renderer::Draw(const SHV::Scene& /*scene*/,
+                                                         const SHV::Texture& /*renderTargetPrototype*/) {
+    throw SHV::Exception("Not implemented!");
 }
 
 void SHV::OpenGl::Renderer::BeginFrame() {

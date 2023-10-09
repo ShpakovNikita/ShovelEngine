@@ -6,4 +6,4 @@ typedef enum {
     HeightMapTexture,
     MetallicRoughnessTexture,
     NormalTexture
-} Textures;
+} PbrTextures;

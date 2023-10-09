@@ -18,6 +18,20 @@ void InputManager::ClearInput() {
     input.mouseMotion.dy = 0;
 }
 
+void InputManager::Reset() {
+    ClearInput();
+    
+    input.pressedKeys = {};
+}
+
+void InputManager::TearDown() {
+    Reset();
+}
+
+void InputManager::SetUp() {
+    Reset();
+}
+
 void InputManager::PollEvents(SDL_Event* event) {
     switch (event->type) {
         /* Keyboard event */

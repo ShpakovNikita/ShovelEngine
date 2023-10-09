@@ -81,23 +81,44 @@ OpenGl::RenderBatch OpenGl::RenderBatch::Create(
     switch (shaderLayout) {
         case kPbrShader:
         case kBasicShader:
+        {
             const size_t vertexCount = primitive.positions.size();
             std::vector<BasicVertexLayout> primitiveData;
             primitiveData.reserve(vertexCount);
-
+            
             AssertD(primitive.uvs.size() == vertexCount);
             AssertD(primitive.normals.size() == vertexCount);
             AssertD(primitive.positions.size() == vertexCount);
-
+            
             for (size_t i = 0; i < vertexCount; ++i) {
                 primitiveData.push_back({primitive.positions[i],
-                                         primitive.normals[i],
-                                         primitive.uvs[i]});
+                    primitive.normals[i],
+                    primitive.uvs[i]});
             }
-
+            
             return OpenGl::RenderBatch::Create(
-                primitiveData.data(), vertexCount, sizeof(BasicVertexLayout),
-                primitive.indices.data(), primitive.indices.size());
+                                               primitiveData.data(), vertexCount, sizeof(BasicVertexLayout),
+                                               primitive.indices.data(), primitive.indices.size());
+        }
+        case kSkyboxShader:
+        case kSkyboxEquirectangularShader:
+        {
+            const size_t vertexCount = primitive.positions.size();
+            std::vector<SkyboxVertexLayout> primitiveData;
+            primitiveData.reserve(vertexCount);
+            
+            AssertD(primitive.uvs.size() == vertexCount);
+            AssertD(primitive.positions.size() == vertexCount);
+            
+            for (size_t i = 0; i < vertexCount; ++i) {
+                primitiveData.push_back({primitive.positions[i],
+                    primitive.uvs[i]});
+            }
+            
+            return OpenGl::RenderBatch::Create(
+                                               primitiveData.data(), vertexCount, sizeof(SkyboxVertexLayout),
+                                               primitive.indices.data(), primitive.indices.size());
+        }
     }
 }
 

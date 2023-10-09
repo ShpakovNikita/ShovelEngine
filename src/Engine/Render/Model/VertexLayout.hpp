@@ -14,4 +14,9 @@ struct BasicVertexLayout {
     Uv uv;
 };
 
+struct SkyboxVertexLayout {
+    Position position;
+    Uv uv;
+};
+
 }  // namespace SHV

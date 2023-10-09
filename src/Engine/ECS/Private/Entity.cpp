@@ -25,16 +25,16 @@ void Entity::AddChild(entt::registry& registry, entt::entity& parent,
     if (parentRelationship.first == entt::null) {
         parentRelationship.first = child;
     } else {
-        auto& currRelationship =
-            registry.get<RelationshipComponent>(parentRelationship.first);
-        while (currRelationship.next != entt::null) {
+        auto currRelationship =
+            registry.try_get<RelationshipComponent>(parentRelationship.first);
+        while (currRelationship->next != entt::null) {
             currRelationship =
-                registry.get<RelationshipComponent>(currRelationship.next);
+                registry.try_get<RelationshipComponent>(currRelationship->next);
         }
 
         auto currEntity = entt::to_entity(registry, currRelationship);
 
-        currRelationship.next = child;
+        currRelationship->next = child;
         childRelationship.prev = currEntity;
     }
 }

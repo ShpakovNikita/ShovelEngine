@@ -11,6 +11,11 @@ struct BasicVertexLayout {
     simd::float2 uv;
 };
 
+struct SkyboxVertexLayout {
+    simd::float4 pos;
+    simd::float2 uv;
+};
+
 struct UniformsData {
     simd::float4x4 projection = {1.0f};
     simd::float4x4 view = {1.0f};

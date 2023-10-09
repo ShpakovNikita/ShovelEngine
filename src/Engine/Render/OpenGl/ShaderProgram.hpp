@@ -10,6 +10,7 @@ namespace SHV::OpenGl {
 class ShaderProgram {
    public:
     ShaderProgram(const std::string& programName);
+    ShaderProgram(const std::string& vertexShaderName, const std::string& fragmentShaderName);
     ~ShaderProgram();
 
     void Use();

@@ -56,10 +56,10 @@ void RenderSystem<RenderBatchComponent>::Process(float /*dt*/) {
 
     for (auto&& [entity, renderComponent, transformComponent] :
          renderView.each()) {
-        const auto* openGlRenderComponent =
+        const auto* apiRenderComponent =
             registry.try_get<RenderBatchComponent>(entity);
 
-        if (openGlRenderComponent == nullptr) {
+        if (apiRenderComponent == nullptr) {
             if (!renderBatchingHasStarted) {
                 renderBatchingHasStarted = true;
                 renderBatcher->BeginRenderBatching();

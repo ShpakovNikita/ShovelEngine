@@ -26,6 +26,8 @@ class MetalDrawable;
 
 namespace SHV {
 
+class Texture;
+
 namespace Metal {
 
 class WindowContext;
@@ -43,9 +45,10 @@ class Renderer : public ::SHV::Renderer {
     virtual void TearDown();
 
     virtual void Draw(const Scene& scene);
+    virtual std::shared_ptr<Texture> Draw(const Scene& scene, const Texture& renderTargetPrototype);
 
-    virtual void SetUpScene(Scene& scene);
-    virtual void TearDownScene(Scene& scene);
+    virtual void SetUpScene(Scene& scene) const;
+    virtual void TearDownScene(Scene& scene) const;
 
     virtual void BeginFrame();
     virtual void EndFrame();
@@ -59,6 +62,9 @@ class Renderer : public ::SHV::Renderer {
     virtual void WaitForFrameExecutionFinish();
 
    private:
+    void BeginFrame(MTL::Texture* renderPassTarget);
+    void EndFrame(bool offscreen);
+
     MTL::Texture* CreateDepthTexture();
 
     std::unique_ptr<LogicalDevice> device;

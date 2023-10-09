@@ -1,12 +1,15 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 namespace SHV {
 enum class eMipmapsUsage { kNone, kGenerate, kLoadFromData };
 // TODO: ASTC support
 
 enum class eTextureFormat { kRGBA8, kRG8, kR8, kRGBA32F };
+
+enum class eTextureType { kTexture2D, kTextureCube };
 
 // TODO: Use in renderers
 struct TextureSampler {
@@ -30,6 +33,7 @@ class Texture {
     Texture(const void* data, uint32_t width, uint32_t height,
             uint32_t channelsCount, uint32_t bytesPerChannel,
             TextureSampler textureSampler = {});
+    Texture(const std::vector<std::shared_ptr<Texture>>& cubeSides);
     ~Texture();
 
     uint32_t GetWidth() const;
@@ -43,9 +47,16 @@ class Texture {
 
     const TextureSampler& GetTextureSampler() const;
 
-    const void* GetData() const;
+    uint64_t GetBytesSize() const;
 
+    const void* GetData() const;
+    const void* GetData(uint8_t slice) const;
+    
    private:
+    void ClearData();
+
+    eTextureType textureType = eTextureType::kTexture2D;
+
     std::string texturePath = {};
     uint32_t width = 0, height = 0;
     uint32_t channelsCount = 0;
@@ -56,7 +67,8 @@ class Texture {
 
     TextureSampler textureSampler;
 
-    // TODO: remove from this class?
-    void* data = nullptr;
+    // For simplicity, it pretty much duplicates data in GPU texture, for gaming
+    // performance this data needs to be cleaned up on scene load
+    std::vector<void*> data = {};
 };
 }  // namespace SHV

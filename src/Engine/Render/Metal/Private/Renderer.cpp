@@ -18,6 +18,7 @@
 #include "Engine/Render/Metal/RenderPipelineCache.hpp"
 #include "Engine/Render/Metal/WindowContext.hpp"
 #include "Engine/Render/Metal/Shaders/ShaderDefinitions.h"
+#include "Engine/Render/Metal/Model/GPUTextureUtils.hpp"
 
 #include "Engine/ECS/Scene.hpp"
 #include "Engine/ECS/Entity.hpp"
@@ -31,6 +32,8 @@
 
 #include "Metal/Metal.hpp"
 #include "QuartzCore/QuartzCore.hpp"
+
+#include <memory>
 
 SHV::Metal::Renderer::Renderer(WindowContext& aMetalWindowContext)
     : SHV::Renderer(), windowContext(aMetalWindowContext){};
@@ -66,14 +69,14 @@ void SHV::Metal::Renderer::TearDown() {
     LogD(eTag::kMetalAPI) << "Metal Renderer teared down" << std::endl;
 }
 
-void SHV::Metal::Renderer::SetUpScene(Scene& scene) {
+void SHV::Metal::Renderer::SetUpScene(Scene& scene) const {
     std::unique_ptr<SHV::RenderBatcher> renderBatcher =
         std::make_unique<SHV::Metal::RenderBatcher>(*device, *commandQueue);
     scene.AddSystem<SHV::RenderSystem<SHV::Metal::RenderComponent>>(
         std::move(renderBatcher));
 }
 
-void SHV::Metal::Renderer::TearDownScene(Scene& scene) {
+void SHV::Metal::Renderer::TearDownScene(Scene& scene) const {
     scene.RemoveSystem<SHV::RenderSystem<SHV::Metal::RenderComponent>>();
 }
 
@@ -81,10 +84,6 @@ void SHV::Metal::Renderer::Draw(const Scene& scene) {
     ZoneNamedN(
         __tracy, "Metal Render Draw",
         static_cast<bool>(kActiveProfilerSystems & ProfilerSystems::Rendering));
-
-    const auto renderView =
-        scene.GetRegistry()
-            .view<SHV::RenderComponent, SHV::RelationshipComponent>();
 
     auto cameraEntity = scene.GetEntityWithActiveCamera();
     AssertE(cameraEntity != entt::null);
@@ -94,15 +93,8 @@ void SHV::Metal::Renderer::Draw(const Scene& scene) {
     const auto& cameraTransform =
         scene.GetRegistry().get<SHV::TransformComponent>(cameraEntity);
 
-    for (const auto& [entity, renderComponent, relationshipComponent] :
-         renderView.each()) {
-        // TODO: optimize
-        if (!renderComponent.isVisible ||
-            !Entity::IsNodesConnected(scene.GetRegistry(),
-                                      scene.GetRootEntity(), entity)) {
-            continue;
-        }
-
+    const std::vector<entt::entity> renderQueue = SortedRenderQueue(scene);
+    for (const auto& entity: renderQueue) {
         const auto& metalRenderComponent =
             scene.GetRegistry().try_get<SHV::Metal::RenderComponent>(entity);
         AssertE(metalRenderComponent != nullptr &&
@@ -143,21 +135,39 @@ void SHV::Metal::Renderer::Draw(const Scene& scene) {
     }
 }
 
-void SHV::Metal::Renderer::BeginFrame() {
+std::shared_ptr<SHV::Texture> SHV::Metal::Renderer::Draw(const SHV::Scene& scene,
+                                const SHV::Texture& renderTargetPrototype) {
     ZoneNamedN(
-        __tracy, "Metal Render BeginFrame",
+        __tracy, "Metal Render Draw to Render Target",
+        static_cast<bool>(kActiveProfilerSystems & ProfilerSystems::Rendering));
+
+    MTL::PixelFormat textureFormat =
+        GPUTextureUtils::GetMTLTextureFormat(renderTargetPrototype.GetTextureFormat());
+
+    auto textureDescr = MTL::TextureDescriptor::texture2DDescriptor(
+        textureFormat, renderTargetPrototype.GetWidth(), renderTargetPrototype.GetHeight(),
+        false);
+    textureDescr->setStorageMode(MTL::StorageMode::StorageModeShared);
+    textureDescr->setUsage(MTL::TextureUsageRenderTarget | MTL::TextureUsageShaderRead);
+
+    MTL::Texture* renderTargetTexture = device->GetDevice().newTexture(textureDescr);
+    textureDescr->release();
+
+    BeginFrame(renderTargetTexture);
+    Draw(scene);
+    EndFrame(true);
+    WaitForFrameExecutionFinish();
+
+    return GPUTextureUtils::MakeTexture(*renderTargetTexture);
+}
+
+void SHV::Metal::Renderer::BeginFrame(MTL::Texture* renderPassTarget) {
+    ZoneNamedN(
+        __tracy, "Metal Render BeginFrame for Render Target",
         static_cast<bool>(kActiveProfilerSystems & ProfilerSystems::Rendering));
 
     AssertD(drawPool == nullptr);
     drawPool = NS::AutoreleasePool::alloc()->init();
-
-    {
-        ZoneNamedN(__tracy_scope_2, "Next Drawable",
-                   static_cast<bool>(kActiveProfilerSystems &
-                                     ProfilerSystems::Rendering));
-        AssertD(surface == nullptr);
-        surface = windowContext.NextDrawable();
-    }
 
     MTL::ClearColor clearColor(
         windowContext.GetWindow().GetWindowConfig().clearColor.r,
@@ -174,7 +184,7 @@ void SHV::Metal::Renderer::BeginFrame() {
     auto colorAttachment = renderPassDescriptor->colorAttachments()->object(0);
     colorAttachment->setClearColor(clearColor);
     colorAttachment->setLoadAction(MTL::LoadActionClear);
-    colorAttachment->setTexture(surface->texture());
+    colorAttachment->setTexture(renderPassTarget);
 
     {
         ZoneNamedN(__tracy_scope_2, "New Command Buffer",
@@ -201,6 +211,22 @@ void SHV::Metal::Renderer::BeginFrame() {
     renderCommandEncoder->setDepthStencilState(depthStencilState);
 }
 
+void SHV::Metal::Renderer::BeginFrame() {
+    ZoneNamedN(
+        __tracy, "Metal Render BeginFrame",
+        static_cast<bool>(kActiveProfilerSystems & ProfilerSystems::Rendering));
+
+    {
+        ZoneNamedN(__tracy_scope_2, "Next Drawable",
+                   static_cast<bool>(kActiveProfilerSystems &
+                                     ProfilerSystems::Rendering));
+        AssertD(surface == nullptr);
+        surface = windowContext.NextDrawable();
+    }
+
+    BeginFrame(surface->texture());
+}
+
 void SHV::Metal::Renderer::WaitForFrameExecutionFinish() {
     ZoneNamedN(
         __tracy, "Metal Render WaitForFrameExecutionFinish",
@@ -209,15 +235,17 @@ void SHV::Metal::Renderer::WaitForFrameExecutionFinish() {
     frameBufferingSemaphore.acquire();
 }
 
-void SHV::Metal::Renderer::EndFrame() {
+void SHV::Metal::Renderer::EndFrame(bool offscreen) {
     ZoneNamedN(
         __tracy, "Metal Render EndFrame",
         static_cast<bool>(kActiveProfilerSystems & ProfilerSystems::Rendering));
 
     renderCommandEncoder->endEncoding();
 
-    AssertD(surface != nullptr);
-    commandBuffer->presentDrawable(surface);
+    if (!offscreen) {
+        AssertD(surface != nullptr);
+        commandBuffer->presentDrawable(surface);
+    }
 
     commandBuffer->commit();
     surface = nullptr;
@@ -225,6 +253,10 @@ void SHV::Metal::Renderer::EndFrame() {
     AssertD(drawPool != nullptr);
     drawPool->release();
     drawPool = nullptr;
+}
+
+void SHV::Metal::Renderer::EndFrame() {
+    EndFrame(false);
 }
 
 SHV::Metal::LogicalDevice& SHV::Metal::Renderer::GetLogicalDevice() const {

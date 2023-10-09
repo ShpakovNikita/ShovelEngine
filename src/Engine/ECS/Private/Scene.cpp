@@ -30,6 +30,11 @@ void SHV::Scene::SceneGraphTraversal(
     Entity::SceneGraphTraversal(registry, rootEntity, entityProcessor);
 }
 
+void SHV::Scene::SceneGraphTraversal(
+    const std::function<void(const entt::entity&)>& entityProcessor) const {
+    Entity::SceneGraphTraversal(registry, rootEntity, entityProcessor);
+}
+
 entt::entity SHV::Scene::GetEntityWithActiveCamera() const {
     auto renderView = registry.view<SHV::CameraComponent>();
 

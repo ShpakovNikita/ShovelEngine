@@ -22,9 +22,10 @@ class Renderer : public SHV::Renderer {
     virtual void TearDown();
 
     virtual void Draw(const Scene& scene);
+    virtual std::shared_ptr<Texture> Draw(const Scene& scene, const Texture& renderTargetPrototype);
 
-    virtual void SetUpScene(Scene& scene);
-    virtual void TearDownScene(Scene& scene);
+    virtual void SetUpScene(Scene& scene) const;
+    virtual void TearDownScene(Scene& scene) const;
 
     virtual void BeginFrame();
     virtual void EndFrame();

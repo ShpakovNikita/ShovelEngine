@@ -5,6 +5,7 @@
 
 #include "Engine/Render/Metal/Shaders/ShaderDefinitions.h"
 #include "Engine/Render/Metal/Shaders/PbrDefinitions.h"
+#include "Engine/Render/Metal/Shaders/SkyboxDefinitions.h"
 #include "Engine/Render/Model/ShaderParamNames.hpp"
 
 #include "Engine/Common/Assert.hpp"
@@ -18,7 +19,10 @@ static const std::map<std::string, int> paramsToLocation = {
     {SHV::PbrParams::kAoMap, AmbientOcclusionTexture},
     {SHV::PbrParams::kHeightMap, HeightMapTexture},
     {SHV::PbrParams::kMetallicRoughnessMap, MetallicRoughnessTexture},
-    {SHV::PbrParams::kNormalMap, NormalTexture}};
+    {SHV::PbrParams::kNormalMap, NormalTexture},
+
+    {SHV::SkyboxParams::kSkyboxMap, SkyboxColorTexture},
+};
 }
 
 Metal::RenderMaterial::RenderMaterial(

@@ -72,7 +72,9 @@ file(GLOB_RECURSE HEADER_FILES LIST_DIRECTORIES false
         "${SOURCE_DIR}/*.hpp"
         )
 
-set(SOURCE_FILES ${SOURCE_FILES} ${HEADER_FILES} ${METAL_SHADERS})
+set(SOURCE_FILES ${SOURCE_FILES} ${HEADER_FILES} ${METAL_SHADERS}
+        src/Engine/Render/ECS/Systems/SkyboxSystem.hpp
+        src/Engine/Render/ECS/Systems/Private/SkyboxSystem.cpp)
 
 option(TRACY_ENABLE "" ON)
 option(TRACY_ON_DEMAND "" ON)

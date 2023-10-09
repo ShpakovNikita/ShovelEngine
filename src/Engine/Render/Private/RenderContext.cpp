@@ -42,6 +42,7 @@ SHV::Window& SHV::RenderContext::GetWindow() const {
 
 void SHV::RenderContext::SwitchRenderApi(const eRenderApi& aRenderApi) {
     if (aRenderApi != renderApi) {
+        AssertD(imGui != nullptr);
         AssertD(window != nullptr);
         AssertD(renderer != nullptr);
         AssertD(windowContext != nullptr);
@@ -49,9 +50,12 @@ void SHV::RenderContext::SwitchRenderApi(const eRenderApi& aRenderApi) {
         imGui->TearDown();
         renderer->TearDown();
         windowContext->TearDown();
+        // Perfectly, we shouldn't recreate window, but it seems like SDL 
+        // caching some state in window preventing it to transition from Metal
+        // to OpenGL
+        window->TearDown();
 
         renderApi = aRenderApi;
-
         switch (renderApi) {
             case eRenderApi::kMetal:
                 CreateMetalApiContext();
@@ -61,6 +65,7 @@ void SHV::RenderContext::SwitchRenderApi(const eRenderApi& aRenderApi) {
                 break;
         }
 
+        window->SetUp();
         windowContext->SetUp();
         renderer->SetUp();
         imGui->SetUp();

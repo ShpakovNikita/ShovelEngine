@@ -4,6 +4,8 @@
 #include "Engine/Common/Exception.hpp"
 #include "Engine/Render/Model/Utils/TextureUtils.hpp"
 
+#include "Engine/Common/Assert.hpp"
+
 #include "stb/stb_image.h"
 
 #include <map>
@@ -66,12 +68,12 @@ void* GetConvertedData(eTextureFormat textureFormat, uint32_t height,
     if (textureFormat == eTextureFormat::kRGBA8 && channelsCount == 3) {
         channelsCount = 4;
         return SHV::TextureUtils::RemapTextureDataOneByte(
-            static_cast<const unsigned char*>(src), width, height, 3, 4);
+            static_cast<const uint8_t*>(src), width, height, 3, 4);
     } else if (textureFormat == eTextureFormat::kRGBA32F &&
                channelsCount == 3) {
         channelsCount = 4;
         return SHV::TextureUtils::RemapTextureDataFloat(
-            static_cast<const unsigned char*>(src), width, height, 3, 4);
+            static_cast<const uint8_t*>(src), width, height, 3, 4);
     } else {
         void* data =
             std::malloc(width * height * channelsCount * bytesPerChannel);
@@ -91,8 +93,33 @@ Texture::Texture(const void* aData, uint32_t aWidth, uint32_t aHeight,
       bytesPerChannel(aBytesPerChannel),
       textureSampler(aTextureSampler) {
     textureFormat = STexture::GetTextureFormat(channelsCount, bytesPerChannel);
-    data = STexture::GetConvertedData(textureFormat, height, width,
-                                      channelsCount, bytesPerChannel, aData);
+    if (aData != nullptr) {
+        data.resize(1);
+        data[0] =
+            STexture::GetConvertedData(textureFormat, height, width,
+                                       channelsCount, bytesPerChannel, aData);
+    }
+}
+
+Texture::Texture(const std::vector<std::shared_ptr<Texture>>& cubeSides) {
+    AssertD(cubeSides.size() >= 6)
+    Texture* prototype = cubeSides[0].get();
+    width = prototype->width;
+    height = prototype->height;
+    channelsCount = prototype->channelsCount;
+    bytesPerChannel = prototype->bytesPerChannel;
+    textureFormat = prototype->textureFormat;
+
+    data.resize(6);
+    for (size_t i = 0; i < data.size(); ++i) {
+        Texture* sideTexture = cubeSides[i].get();
+        AssertD(sideTexture->channelsCount == channelsCount &&
+                sideTexture->bytesPerChannel == bytesPerChannel &&
+                sideTexture->height == height &&
+                sideTexture->width == width)
+        data[i] = (void*)malloc(sideTexture->GetBytesSize());
+        std::memcpy(data[i], sideTexture->GetData(), sideTexture->GetBytesSize());
+    }
 }
 
 Texture::Texture(const std::string& aTexturePath) : texturePath(aTexturePath) {
@@ -100,7 +127,7 @@ Texture::Texture(const std::string& aTexturePath) : texturePath(aTexturePath) {
     const std::string filePath =
         Engine::Get().GetFileSystem().GetPath(texturePath);
 
-    void* stbData = nullptr;
+    void* stbData;
     if (stbi_is_hdr(filePath.c_str())) {
         stbData = stbi_loadf(filePath.c_str(), &w, &h, &nrChannels, 0);
         bytesPerChannel = sizeof(float);
@@ -118,14 +145,14 @@ Texture::Texture(const std::string& aTexturePath) : texturePath(aTexturePath) {
 
     textureFormat = STexture::GetTextureFormat(nrChannels, bytesPerChannel);
 
-    data = STexture::GetConvertedData(textureFormat, height, width,
+    data.resize(1);
+    data[0] = STexture::GetConvertedData(textureFormat, height, width,
                                       channelsCount, bytesPerChannel, stbData);
     stbi_image_free(stbData);
 }
 
 Texture::~Texture() {
-    std::free(data);
-    data = nullptr;
+    ClearData();
 }
 
 uint32_t Texture::GetWidth() const { return width; }
@@ -146,4 +173,22 @@ const TextureSampler& Texture::GetTextureSampler() const {
     return textureSampler;
 }
 
-const void* Texture::GetData() const { return data; }
+uint64_t Texture::GetBytesSize() const {
+    return channelsCount * bytesPerChannel * width * height;
+}
+
+const void* Texture::GetData() const {
+    return !data.empty() ? data[0] : nullptr;
+}
+
+const void* Texture::GetData(uint8_t slice) const {
+    AssertD(textureType == eTextureType::kTextureCube && slice < data.size())
+    return data[slice];
+}
+
+void Texture::ClearData() {
+    for (size_t i = 0; i < data.size(); ++i) {
+        std::free(data[i]);
+    }
+    data.clear();
+}

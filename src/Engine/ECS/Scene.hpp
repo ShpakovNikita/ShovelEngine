@@ -19,6 +19,8 @@ class Scene {
 
     void SceneGraphTraversal(
         const std::function<void(entt::entity&)>& entityProcessor);
+    void SceneGraphTraversal(
+        const std::function<void(const entt::entity&)>& entityProcessor) const;
 
     void Process(float dt);
 

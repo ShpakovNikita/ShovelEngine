@@ -9,8 +9,8 @@
 
 using namespace SHV;
 
-unsigned char* TextureUtils::RemapTextureData(
-    const unsigned char* srcImageData, uint32_t width, uint32_t height,
+uint8_t* TextureUtils::RemapTextureData(
+    const uint8_t* srcImageData, uint32_t width, uint32_t height,
     uint32_t srcChannelsCount, uint32_t dstChannelsCount,
     uint32_t srcBytesPerPixel, uint32_t dstBytesPerPixel, void* fillValue,
     bool flipX, bool flipY) {
@@ -34,21 +34,21 @@ unsigned char* TextureUtils::RemapTextureData(
 
             if (dstChannelsCount > srcChannelsCount) {
                 for (uint32_t j = 0; j < srcChannelsCount; ++j) {
-                    std::memcpy(&dstImageData[dstPixelIndex + j],
-                                &srcImageData[srcPixelIndex + j],
+                    std::memcpy(&dstImageData[dstPixelIndex + j * dstBytesPerPixel],
+                                &srcImageData[srcPixelIndex + j * srcBytesPerPixel],
                                 dstBytesPerPixel);
                 }
 
                 for (uint32_t j = 0; j < dstChannelsCount - srcChannelsCount;
                      ++j) {
                     std::memcpy(
-                        &dstImageData[dstPixelIndex + srcChannelsCount + j],
+                        &dstImageData[dstPixelIndex + (srcChannelsCount + j) * dstBytesPerPixel],
                         fillValue, dstBytesPerPixel);
                 }
             } else {
                 for (uint32_t j = 0; j < dstChannelsCount; ++j) {
-                    std::memcpy(&dstImageData[dstPixelIndex + j],
-                                &srcImageData[srcPixelIndex + j],
+                    std::memcpy(&dstImageData[dstPixelIndex + j * dstBytesPerPixel],
+                                &srcImageData[srcPixelIndex + j * srcBytesPerPixel],
                                 dstBytesPerPixel);
                 }
             }
@@ -58,16 +58,16 @@ unsigned char* TextureUtils::RemapTextureData(
     return dstImageData;
 }
 
-unsigned char* TextureUtils::RemapTextureDataOneByte(
-    const unsigned char* srcImageData, uint32_t width, uint32_t height,
+uint8_t* TextureUtils::RemapTextureDataOneByte(
+    const uint8_t* srcImageData, uint32_t width, uint32_t height,
     uint32_t srcChannelsCount, uint32_t dstChannelsCount,
     unsigned char fillValue, bool flipX, bool flipY) {
     return RemapTextureData(srcImageData, width, height, srcChannelsCount,
                             dstChannelsCount, 1, 1, &fillValue, flipX, flipY);
 }
 
-unsigned char* TextureUtils::RemapTextureDataFloat(
-    const unsigned char* srcImageData, uint32_t width, uint32_t height,
+uint8_t* TextureUtils::RemapTextureDataFloat(
+    const uint8_t* srcImageData, uint32_t width, uint32_t height,
     uint32_t srcChannelsCount, uint32_t dstChannelsCount, float fillValue,
     bool flipX, bool flipY) {
     return RemapTextureData(srcImageData, width, height, srcChannelsCount,

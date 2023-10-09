@@ -31,5 +31,11 @@ Metal::RenderPipelineCache::CreateRenderPipeline(eMaterialShader shader) {
         case eMaterialShader::kBasicShader:
             return std::make_shared<RenderPipeline>(
                 logicalDevice, "basic_vertex", "basic_fragment");
+        case eMaterialShader::kSkyboxShader:
+            return std::make_shared<RenderPipeline>(
+                logicalDevice, "skybox_vertex", "skybox_fragment");
+        case eMaterialShader::kSkyboxEquirectangularShader:
+            return std::make_shared<RenderPipeline>(
+                logicalDevice, "skybox_vertex", "skybox_equirectangular_fragment");
     }
 }
