@@ -5,6 +5,7 @@
 #include "Metal/Metal.hpp"
 
 #include <memory>
+#include <array>
 
 namespace SHV {
 namespace Metal {
@@ -15,6 +16,7 @@ struct TextureInfo {
 
 namespace GPUTextureUtils {
     MTL::PixelFormat GetMTLTextureFormat(eTextureFormat textureFormat);
+    std::array<uint8_t, 4> GetMTLTextureFormatSwizzling(eTextureFormat textureFormat);
     MTL::SamplerMinMagFilter GetMTLMinMagFilter(TextureSampler::eFilter filter);
     MTL::SamplerMipFilter GetMTLMipFilter(TextureSampler::eFilter filter);
     MTL::SamplerAddressMode GetMTLSamplerAddressMode(TextureSampler::eAddressMode mode);

@@ -3,6 +3,7 @@
 #include "Engine/ECS/Components/RelationshipComponent.hpp"
 #include "Engine/ECS/Components/CameraComponent.hpp"
 #include "Engine/ECS/Components/RootComponent.hpp"
+#include "Engine/ECS/Components/TransformComponent.hpp"
 #include "Engine/ECS/Entity.hpp"
 
 SHV::Scene::Scene() {

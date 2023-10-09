@@ -30,7 +30,7 @@ std::vector<entt::entity> SHV::Renderer::SortedRenderQueue(const Scene& scene) {
         queue.push_back(entity);
     });
     if (skybox != entt::null) {
-        queue.insert(queue.begin(), skybox);
+        queue.push_back(skybox);
     }
     return queue;
 }

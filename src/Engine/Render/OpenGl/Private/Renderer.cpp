@@ -78,8 +78,6 @@ void SHV::OpenGl::Renderer::Draw(const Scene& scene) {
         __tracy, "OpenGl Render Draw",
         static_cast<bool>(kActiveProfilerSystems & ProfilerSystems::Rendering));
 
-    const auto renderView = scene.GetRegistry().view<SHV::RenderComponent>();
-
     auto cameraEntity = scene.GetEntityWithActiveCamera();
     AssertE(cameraEntity != entt::null);
 
@@ -88,14 +86,8 @@ void SHV::OpenGl::Renderer::Draw(const Scene& scene) {
     const auto& cameraTransform =
         scene.GetRegistry().get<SHV::TransformComponent>(cameraEntity);
 
-    for (const auto& [entity, renderComponent] : renderView.each()) {
-        // TODO: optimize
-        if (!renderComponent.isVisible ||
-            !Entity::IsNodesConnected(scene.GetRegistry(),
-                                      scene.GetRootEntity(), entity)) {
-            continue;
-        }
-
+    const std::vector<entt::entity> renderQueue = SortedRenderQueue(scene);
+    for (const auto& entity: renderQueue) {
         const auto& openGlRenderComponent =
             scene.GetRegistry().try_get<SHV::OpenGl::RenderComponent>(entity);
         AssertE(openGlRenderComponent != nullptr &&
@@ -114,8 +106,9 @@ void SHV::OpenGl::Renderer::Draw(const Scene& scene) {
         program.Use();
 
         program.SetMat4("projection", cameraComponent.projection);
-        program.SetMat4("view", cameraComponent.GetViewMatrix(cameraTransform));
+        program.SetMat4("view", cameraComponent.GetViewMatrix(cameraTransform.translation));
         program.SetMat4("model", transformComponent->GetWorldMatrix());
+        program.SetMat4("viewRotation", cameraComponent.GetViewMatrix({}));
 
         renderBatch.Bind();
         openGlRenderComponent->renderMaterial->Bind();

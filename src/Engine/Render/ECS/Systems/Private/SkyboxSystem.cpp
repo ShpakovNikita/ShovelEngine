@@ -29,7 +29,7 @@ namespace SSkyboxSystem {
         registry.emplace<TransformComponent>(camera);
         registry.emplace<CameraComponent>(camera);
 
-        auto cubeEntity = ObjectCreationUtils::CreateCube(scene->GetRegistry());
+        auto cubeEntity = ObjectCreationUtils::CreateCube(scene->GetRegistry(), 2.0f);
 
         auto& renderComponent = registry.get<RenderComponent>(cubeEntity);
         renderComponent.material.materialShader = eMaterialShader::kSkyboxEquirectangularShader;
@@ -66,13 +66,18 @@ void SkyboxSystem::Process(float /*dt*/) {
 
 void SkyboxSystem::CreateSkyboxCubeMap(entt::entity entity) {
     auto& component = registry.get<SkyboxComponent>(entity);
-    std::shared_ptr<Texture> texture = CreateCubeMapTextureFromEquirectangularProjection(component.equirectangularTexture);
-    Primitive cubePrimitive = ObjectCreationUtils::CreateCubePrimitive();
 
     auto& renderComponent = registry.emplace<RenderComponent>(entity);
-    renderComponent.material.materialShader = eMaterialShader::kSkyboxShader;
-    renderComponent.material.textures[SHV::SkyboxParams::kSkyboxMap] = texture;
-    renderComponent.primitive = cubePrimitive;
+    renderComponent.primitive = ObjectCreationUtils::CreateCubePrimitive(2.0f);
+
+    if (component.convertToCubeMaps) {
+        renderComponent.material.materialShader = eMaterialShader::kSkyboxShader;
+        std::shared_ptr<Texture> texture = CreateCubeMapTextureFromEquirectangularProjection(component.equirectangularTexture);
+        renderComponent.material.textures[SHV::SkyboxParams::kSkyboxMap] = texture;
+    } else {
+        renderComponent.material.materialShader = eMaterialShader::kSkyboxEquirectangularShader;
+        renderComponent.material.textures[SHV::SkyboxParams::kSkyboxMap] = component.equirectangularTexture;
+    }
     component.equirectangularTexture = nullptr;
 }
 

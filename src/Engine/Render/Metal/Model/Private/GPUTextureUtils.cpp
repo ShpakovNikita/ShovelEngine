@@ -11,6 +11,7 @@ using namespace SHV;
 MTL::PixelFormat Metal::GPUTextureUtils::GetMTLTextureFormat(eTextureFormat textureFormat) {
     switch (textureFormat) {
         case eTextureFormat::kRGBA8:
+            // TODO: should be BGRA8 when proper swizzling is done
             return MTL::PixelFormat::PixelFormatRGBA8Unorm;
         case eTextureFormat::kRG8:
             return MTL::PixelFormat::PixelFormatRG8Unorm;
@@ -18,6 +19,19 @@ MTL::PixelFormat Metal::GPUTextureUtils::GetMTLTextureFormat(eTextureFormat text
             return MTL::PixelFormat::PixelFormatR8Unorm;
         case eTextureFormat::kRGBA32F:
             return MTL::PixelFormat::PixelFormatRGBA32Float;
+    }
+}
+
+std::array<uint8_t, 4> Metal::GPUTextureUtils::GetMTLTextureFormatSwizzling(eTextureFormat textureFormat) {
+    switch (textureFormat) {
+        case eTextureFormat::kRGBA8:
+            return {2, 1, 0, 3};
+        case eTextureFormat::kRG8:
+            return {0, 1, 0, 0};
+        case eTextureFormat::kR8:
+            return {0, 0, 0, 0};
+        case eTextureFormat::kRGBA32F:
+            return {0, 1, 2, 3};
     }
 }
 
@@ -55,6 +69,8 @@ MTL::SamplerAddressMode Metal::GPUTextureUtils::GetMTLSamplerAddressMode(
 Metal::TextureInfo Metal::GPUTextureUtils::GetTextureInfo(const MTL::PixelFormat& format) {
     switch (format) {
         case MTL::PixelFormat::PixelFormatRGBA8Unorm:
+            return {4, 1};
+        case MTL::PixelFormat::PixelFormatBGRA8Unorm:
             return {4, 1};
         case MTL::PixelFormat::PixelFormatRG8Unorm:
             return {2, 1};

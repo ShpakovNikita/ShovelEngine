@@ -106,13 +106,11 @@ OpenGl::RenderBatch OpenGl::RenderBatch::Create(
             const size_t vertexCount = primitive.positions.size();
             std::vector<SkyboxVertexLayout> primitiveData;
             primitiveData.reserve(vertexCount);
-            
-            AssertD(primitive.uvs.size() == vertexCount);
+
             AssertD(primitive.positions.size() == vertexCount);
             
             for (size_t i = 0; i < vertexCount; ++i) {
-                primitiveData.push_back({primitive.positions[i],
-                    primitive.uvs[i]});
+                primitiveData.push_back({primitive.positions[i]});
             }
             
             return OpenGl::RenderBatch::Create(

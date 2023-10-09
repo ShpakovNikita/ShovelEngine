@@ -21,7 +21,7 @@ void Metal::RemoveMetalDevice(void* layer)
 
 CA::MetalDrawable* Metal::NextDrawable(void* layer) {
   CAMetalLayer* metalLayer = (CAMetalLayer*) layer;
-  metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm;
+  metalLayer.pixelFormat = MTLPixelFormatRGBA8Unorm;
   id <CAMetalDrawable> metalDrawable = [metalLayer nextDrawable];
   CA::MetalDrawable* pMetalCppDrawable = ( __bridge CA::MetalDrawable*) metalDrawable;
   return pMetalCppDrawable;

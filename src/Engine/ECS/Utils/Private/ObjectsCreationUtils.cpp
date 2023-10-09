@@ -9,31 +9,37 @@
 
 using namespace SHV;
 
-entt::entity ObjectCreationUtils::CreateCube(entt::registry& registry) {
+entt::entity ObjectCreationUtils::CreateCube(entt::registry& registry, float edgeSize) {
     auto entity = registry.create();
 
     registry.emplace<TransformComponent>(entity);
     auto& renderComponent = registry.emplace<RenderComponent>(entity);
-    renderComponent.primitive = ObjectCreationUtils::CreateCubePrimitive();
+    renderComponent.primitive = ObjectCreationUtils::CreateCubePrimitive(edgeSize);
 
     return entity;
 }
 
-Primitive ObjectCreationUtils::CreateCubePrimitive() {
+Primitive ObjectCreationUtils::CreateCubePrimitive(float edgeSize) {
     Primitive primitive = {};
+    float halfSize = edgeSize / 2.0f;
 
-    primitive.positions = {{-0.5, -0.5, 0.5, 1.0},  {0.5, -0.5, 0.5, 1.0},
-                           {-0.5, 0.5, 0.5, 1.0},   {0.5, 0.5, 0.5, 1.0},
-                           {0.5, 0.5, 0.5, 1.0},    {0.5, -0.5, 0.5, 1.0},
-                           {0.5, 0.5, -0.5, 1.0},   {0.5, -0.5, -0.5, 1.0},
-                           {-0.5, 0.5, 0.5, 1.0},   {0.5, 0.5, 0.5, 1.0},
-                           {-0.5, 0.5, -0.5, 1.0},  {0.5, 0.5, -0.5, 1.0},
-                           {0.5, -0.5, 0.5, 1.0},   {-0.5, -0.5, 0.5, 1.0},
-                           {0.5, -0.5, -0.5, 1.0},  {-0.5, -0.5, -0.5, 1.0},
-                           {-0.5, -0.5, 0.5, 1.0},  {-0.5, 0.5, 0.5, 1.0},
-                           {-0.5, -0.5, -0.5, 1.0}, {-0.5, 0.5, -0.5, 1.0},
-                           {-0.5, -0.5, -0.5, 1.0}, {-0.5, 0.5, -0.5, 1.0},
-                           {0.5, -0.5, -0.5, 1.0},  {0.5, 0.5, -0.5, 1.0}};
+    primitive.positions = {{-1.0, -1.0, 1.0, 1.0},  {1.0, -1.0, 1.0, 1.0},
+                           {-1.0, 1.0, 1.0, 1.0},   {1.0, 1.0, 1.0, 1.0},
+                           {1.0, 1.0, 1.0, 1.0},    {1.0, -1.0, 1.0, 1.0},
+                           {1.0, 1.0, -1.0, 1.0},   {1.0, -1.0, -1.0, 1.0},
+                           {-1.0, 1.0, 1.0, 1.0},   {1.0, 1.0, 1.0, 1.0},
+                           {-1.0, 1.0, -1.0, 1.0},  {1.0, 1.0, -1.0, 1.0},
+                           {1.0, -1.0, 1.0, 1.0},   {-1.0, -1.0, 1.0, 1.0},
+                           {1.0, -1.0, -1.0, 1.0},  {-1.0, -1.0, -1.0, 1.0},
+                           {-1.0, -1.0, 1.0, 1.0},  {-1.0, 1.0, 1.0, 1.0},
+                           {-1.0, -1.0, -1.0, 1.0}, {-1.0, 1.0, -1.0, 1.0},
+                           {-1.0, -1.0, -1.0, 1.0}, {-1.0, 1.0, -1.0, 1.0},
+                           {1.0, -1.0, -1.0, 1.0},  {1.0, 1.0, -1.0, 1.0}};
+    for (auto& position : primitive.positions) {
+        position.x *= halfSize;
+        position.y *= halfSize;
+        position.z *= halfSize;
+    }
 
     primitive.normals = {{0.0, 0.0},  {0.0, 0.0},  {0.0, 0.0},  {0.0, 0.0},
                          {1.0, 0.0},  {1.0, 0.0},  {1.0, 0.0},  {1.0, 0.0},

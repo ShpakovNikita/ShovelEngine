@@ -1,7 +1,3 @@
-//
-// Created by Mikita on 28.10.22.
-//
-
 #include "Engine/Render/Model/Utils/TextureUtils.hpp"
 
 #include <cstdlib>

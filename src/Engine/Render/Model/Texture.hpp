@@ -11,7 +11,6 @@ enum class eTextureFormat { kRGBA8, kRG8, kR8, kRGBA32F };
 
 enum class eTextureType { kTexture2D, kTextureCube };
 
-// TODO: Use in renderers
 struct TextureSampler {
     enum class eFilter { kLinear, kNearest };
     enum class eAddressMode { kRepeat, kClampToEdge, kClampToBorder };
@@ -41,6 +40,7 @@ class Texture {
     const std::string& GetTexturePath() const;
     uint32_t GetChannelsCount() const;
     uint32_t GetBytesPerChannel() const;
+    eTextureType GetTextureType() const;
 
     eMipmapsUsage GetMipmapUsage() const;
     eTextureFormat GetTextureFormat() const;
@@ -67,7 +67,7 @@ class Texture {
 
     TextureSampler textureSampler;
 
-    // For simplicity, it pretty much duplicates data in GPU texture, for gaming
+    // For simplicity, it pretty much duplicates data in GPU texture, for memory
     // performance this data needs to be cleaned up on scene load
     std::vector<void*> data = {};
 };

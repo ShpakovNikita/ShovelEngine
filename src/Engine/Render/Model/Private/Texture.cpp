@@ -101,11 +101,14 @@ Texture::Texture(const void* aData, uint32_t aWidth, uint32_t aHeight,
     }
 }
 
-Texture::Texture(const std::vector<std::shared_ptr<Texture>>& cubeSides) {
+Texture::Texture(const std::vector<std::shared_ptr<Texture>>& cubeSides)
+    : textureType(eTextureType::kTextureCube) {
     AssertD(cubeSides.size() >= 6)
     Texture* prototype = cubeSides[0].get();
     width = prototype->width;
     height = prototype->height;
+
+    AssertD(width == height)
     channelsCount = prototype->channelsCount;
     bytesPerChannel = prototype->bytesPerChannel;
     textureFormat = prototype->textureFormat;
@@ -164,6 +167,8 @@ const std::string& Texture::GetTexturePath() const { return texturePath; }
 uint32_t Texture::GetChannelsCount() const { return channelsCount; }
 
 uint32_t Texture::GetBytesPerChannel() const { return bytesPerChannel; }
+
+eTextureType Texture::GetTextureType() const { return textureType; }
 
 eMipmapsUsage Texture::GetMipmapUsage() const { return mipmapsUsage; }
 

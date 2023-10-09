@@ -2,7 +2,7 @@
 out vec4 FragColor;
 
 struct Vertex {
-    vec2 uv;
+    vec3 texCoords;
 };
 
 in Vertex vertex;
@@ -11,6 +11,6 @@ uniform sampler2D skyboxMap;
 
 void main()
 {
-    vec4 baseColor = texture(skyboxMap, vertex.uv);
+    vec4 baseColor = texture(skyboxMap, vertex.texCoords.xy);
     FragColor = baseColor;
 }

@@ -2,9 +2,8 @@
 
 #include "glm/vec3.hpp"
 #include "glm/mat4x4.hpp"
+#include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
-#include "TransformComponent.hpp"
 
 namespace SHV {
 struct CameraComponent {
@@ -22,13 +21,12 @@ struct CameraComponent {
     // TODO: remove when fix bug with quaternion conversion back and forth
     glm::vec3 cameraRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
-    glm::mat4 GetViewMatrix(
-        const TransformComponent& transformComponent) const {
+    glm::mat4 GetViewMatrix(const glm::vec3& translation) const {
         const glm::quat cameraRotQuat = cameraRotation;
         const glm::vec3 cameraFrontRotated = cameraRotQuat * cameraFront;
         const glm::vec3 cameraUpRotated = cameraRotQuat * cameraUp;
-        return glm::lookAt(transformComponent.translation,
-                           transformComponent.translation + cameraFrontRotated,
+        return glm::lookAt(translation,
+                           translation + cameraFrontRotated,
                            cameraUpRotated);
     }
 };

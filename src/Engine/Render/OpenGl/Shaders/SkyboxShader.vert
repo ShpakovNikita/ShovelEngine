@@ -1,21 +1,19 @@
 #version 330 core
 
 layout (location = 0) in vec4 aPos;
-layout (location = 2) in vec2 aUv;
 
 struct Vertex {
-    vec2 uv;
+    vec3 texCoords;
 };
 
 out Vertex vertex;
 
-uniform mat4 view;
+uniform mat4 viewRotation;
+uniform mat4 projection;
 
 void main()
 {
-    vec4 pos = vec4(aPos.x, aPos.y, aPos.z, 1.0);
-
-    vertex.uv = aUv;
-
-    gl_Position = view * pos;
+    vec4 pos = projection * viewRotation * aPos;
+    vertex.texCoords = aPos.xyz;
+    gl_Position = pos.xyzw; // pos.xyww;
 }

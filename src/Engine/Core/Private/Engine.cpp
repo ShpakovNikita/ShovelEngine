@@ -262,7 +262,6 @@ void Engine::LoadPrimitives() {
         resourceManager->Get<Texture>("sloppy-mortar-bricks_metallic.png");
     renderComponent.material.textures[SHV::PbrParams::kNormalMap] =
         resourceManager->Get<Texture>("sloppy-mortar-bricks_normal-ogl.png");
-    renderComponent.isVisible = false;
 
     auto& nameComponent = registry.emplace<SHV::NameComponent>(cubeEntity);
     nameComponent.name = "Cube";
