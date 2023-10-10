@@ -2,17 +2,20 @@
 
 #include "Engine/ECS/System.hpp"
 
+#include <memory>
+
 namespace SHV {
-class Window;
+
+class AspectRatioDelegate;
 
 class CameraSystem : public System {
    public:
-    CameraSystem(entt::registry& registry, Window& window);
+    CameraSystem(entt::registry& registry, std::unique_ptr<AspectRatioDelegate> delegate);
     virtual ~CameraSystem();
 
     virtual void Process(float dt);
 
    private:
-    Window& window;
+    std::unique_ptr<AspectRatioDelegate> delegate;
 };
 }  // namespace SHV

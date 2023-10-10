@@ -19,6 +19,7 @@ class GPUTexture {
    private:
     std::weak_ptr<Texture> texture;
     GLuint textureHandle = 0;
+    GLuint textureTarget = 0;
 };
 }  // namespace OpenGl
 }  // namespace SHV

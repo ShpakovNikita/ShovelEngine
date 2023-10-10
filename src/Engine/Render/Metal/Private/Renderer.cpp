@@ -49,7 +49,9 @@ void SHV::Metal::Renderer::SetUp() {
     commandQueue = std::make_unique<SHV::Metal::CommandQueue>(*device);
     commandQueue->SetUp();
 
-    depthTexture = CreateDepthTexture();
+    const size_t width = windowContext.GetWindow().GetWindowSize().x;
+    const size_t height = windowContext.GetWindow().GetWindowSize().y;
+    depthTexture = CreateDepthTexture(width, height);
 }
 
 void SHV::Metal::Renderer::TearDown() {
@@ -154,15 +156,22 @@ std::shared_ptr<SHV::Texture> SHV::Metal::Renderer::Draw(const SHV::Scene& scene
     MTL::Texture* renderTargetTexture = device->GetDevice().newTexture(textureDescr);
     textureDescr->release();
 
-    BeginFrame(renderTargetTexture);
+    MTL::Texture* renderTargetDepthTexture = CreateDepthTexture(renderTargetPrototype.GetWidth(), renderTargetPrototype.GetHeight());
+
+    BeginFrame(renderTargetTexture, renderTargetDepthTexture);
     Draw(scene);
     EndFrame(true);
     WaitForFrameExecutionFinish();
 
-    return GPUTextureUtils::MakeTexture(*renderTargetTexture);
+    std::shared_ptr<SHV::Texture> destinationTexture = GPUTextureUtils::MakeTexture(*renderTargetTexture);
+
+    renderTargetDepthTexture->release();
+    renderTargetTexture->release();
+
+    return destinationTexture;
 }
 
-void SHV::Metal::Renderer::BeginFrame(MTL::Texture* renderPassTarget) {
+void SHV::Metal::Renderer::BeginFrame(MTL::Texture* renderPassTarget, MTL::Texture* depthTexture) {
     ZoneNamedN(
         __tracy, "Metal Render BeginFrame for Render Target",
         static_cast<bool>(kActiveProfilerSystems & ProfilerSystems::Rendering));
@@ -207,9 +216,18 @@ void SHV::Metal::Renderer::BeginFrame(MTL::Texture* renderPassTarget) {
     MTL::DepthStencilState* depthStencilState =
         device->GetDevice().newDepthStencilState(depthDescriptor);
 
+    MTL::Viewport viewport;
+    viewport.originX = 0.0;
+    viewport.originY = 0.0;
+    viewport.width = renderPassTarget->width();
+    viewport.height = renderPassTarget->height();
+    viewport.znear = 0.0;
+    viewport.zfar = 1.0;
+
     renderCommandEncoder =
         commandBuffer->renderCommandEncoder(renderPassDescriptor);
     renderCommandEncoder->setDepthStencilState(depthStencilState);
+    renderCommandEncoder->setViewport(viewport);
 }
 
 void SHV::Metal::Renderer::BeginFrame() {
@@ -225,7 +243,7 @@ void SHV::Metal::Renderer::BeginFrame() {
         surface = windowContext.NextDrawable();
     }
 
-    BeginFrame(surface->texture());
+    BeginFrame(surface->texture(), depthTexture);
 }
 
 void SHV::Metal::Renderer::WaitForFrameExecutionFinish() {
@@ -278,10 +296,7 @@ MTL::RenderCommandEncoder& SHV::Metal::Renderer::GetRenderCommandEncoder()
     return *renderCommandEncoder;
 }
 
-MTL::Texture* SHV::Metal::Renderer::CreateDepthTexture() {
-    const size_t width = windowContext.GetWindow().GetWindowSize().x;
-    const size_t height = windowContext.GetWindow().GetWindowSize().y;
-
+MTL::Texture* SHV::Metal::Renderer::CreateDepthTexture(size_t width, size_t height) {
     auto textureDescr = MTL::TextureDescriptor::texture2DDescriptor(
         MTL::PixelFormat::PixelFormatDepth32Float_Stencil8, width, height,
         false);

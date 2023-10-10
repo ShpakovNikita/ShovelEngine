@@ -63,6 +63,8 @@ void SHV::Metal::GPUTexture::CreateMetalTexture(
         GPUTextureUtils::GetMTLSamplerAddressMode(textureSampler.addressModeU));
     samplerDescriptor->setTAddressMode(
         GPUTextureUtils::GetMTLSamplerAddressMode(textureSampler.addressModeV));
+    samplerDescriptor->setRAddressMode(
+        GPUTextureUtils::GetMTLSamplerAddressMode(textureSampler.addressModeW));
 
     if (texture->GetMipmapUsage() != eMipmapsUsage::kNone) {
         samplerDescriptor->setMipFilter(

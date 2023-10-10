@@ -62,10 +62,10 @@ class Renderer : public ::SHV::Renderer {
     virtual void WaitForFrameExecutionFinish();
 
    private:
-    void BeginFrame(MTL::Texture* renderPassTarget);
+    void BeginFrame(MTL::Texture* renderPassTarget, MTL::Texture* depthTexture);
     void EndFrame(bool offscreen);
 
-    MTL::Texture* CreateDepthTexture();
+    MTL::Texture* CreateDepthTexture(size_t width, size_t height);
 
     std::unique_ptr<LogicalDevice> device;
     std::unique_ptr<CommandQueue> commandQueue;

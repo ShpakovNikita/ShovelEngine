@@ -33,8 +33,7 @@ Metal::RenderPipeline::RenderPipeline(LogicalDevice& aLogicalDevice,
         MTL::RenderPipelineDescriptor::alloc()->init();
     pipelineStateDescriptor->setVertexFunction(vertexProgram);
     pipelineStateDescriptor->setFragmentFunction(fragmentProgram);
-    pipelineStateDescriptor->colorAttachments()->object(0)->setPixelFormat(
-        MTL::PixelFormat::PixelFormatRGBA8Unorm);
+    pipelineStateDescriptor->colorAttachments()->object(0)->setPixelFormat(renderPipelineParams.pixelFormat);
 
     if (renderPipelineParams.enableDepthTest) {
         pipelineStateDescriptor->setDepthAttachmentPixelFormat(

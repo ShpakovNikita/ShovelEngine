@@ -39,6 +39,7 @@
 #include "Engine/ECS/Systems/TransformSystem.hpp"
 
 #include "Engine/ECS/Utils/ObjectsCreationUtils.hpp"
+#include "Engine/ECS/Utils/AspectRatioDelegate/WindowAspectRatioDelegate.hpp"
 
 #include "Engine/ECS/Components/TransformComponent.hpp"
 #include "Engine/ECS/Components/MovementComponent.hpp"
@@ -271,7 +272,7 @@ void Engine::LoadPrimitives() {
     auto& skyboxNameComponent = registry.emplace<SHV::NameComponent>(skyboxEntity);
     skyboxNameComponent.name = "Skybox";
 
-    skyboxComponent.equirectangularTexture = resourceManager->Get<Texture>("belfast_sunset_puresky_4k.hdr");
+    skyboxComponent.equirectangularTexture = resourceManager->Get<Texture>("small_empty_room_1_4k.hdr");
 
     Entity::AddChild(registry, scene->GetRootEntity(), skyboxEntity);
     Entity::AddChild(registry, scene->GetRootEntity(), cubeEntity);
@@ -285,7 +286,7 @@ void Engine::CreateScene() {
                                   renderContext->GetWindow());
     scene->AddSystem<MovementSystem>();
     scene->AddSystem<TransformSystem>();
-    scene->AddSystem<CameraSystem>(renderContext->GetWindow());
+    scene->AddSystem<CameraSystem>(std::make_unique<WindowAspectRatioDelegate>(renderContext->GetWindow()));
     scene->AddSystem<SkyboxSystem>(*renderContext);
 
     renderContext->GetRenderer().SetUpScene(*scene);

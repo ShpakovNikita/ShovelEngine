@@ -1,4 +1,5 @@
 #include "Engine/Render/OpenGl/Model/GPUTexture.hpp"
+#include "Engine/Render/OpenGl/Model/GPUTextureUtils.hpp"
 
 #include "Engine/Common/Assert.hpp"
 #include "Engine/Common/Exception.hpp"
@@ -9,88 +10,45 @@
 using namespace SHV;
 
 namespace SHV::OpenGl::SGPUTexture {
-struct GlTextureFormat {
-    GLuint internalFormat;  // Format in which we want OpenGl to interpret data
-    GLenum format;          // Format to pass data
-    GLenum type;            // Data type of passed data
-};
-
-GlTextureFormat GetGlTextureFormat(eTextureFormat textureFormat) {
-    switch (textureFormat) {
-        case eTextureFormat::kRGBA8:
-            return {GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE};
-        case eTextureFormat::kRG8:
-            return {GL_RG8, GL_RG, GL_UNSIGNED_BYTE};
-        case eTextureFormat::kR8:
-            return {GL_R8, GL_RED, GL_UNSIGNED_BYTE};
-        case eTextureFormat::kRGBA32F:
-            return {GL_RGBA32F, GL_RGBA, GL_FLOAT};
+void GenerateGlTexture(const std::shared_ptr<Texture>& texture) {
+    const GlTextureFormat glTextureFormat =
+        GPUTextureUtils::GetGlTextureFormat(texture->GetTextureFormat());
+    GLuint textureTarget = GPUTextureUtils::GetGlTextureTarget(texture->GetTextureType());
+    switch (texture->GetTextureType()) {
+        case eTextureType::kTexture2D:
+            glTexImage2D(textureTarget, 0, glTextureFormat.internalFormat,
+                         texture->GetWidth(), texture->GetHeight(), 0,
+                         glTextureFormat.format, glTextureFormat.type,
+                         texture->GetData());
+            return;
+        case eTextureType::kTextureCube:
+            for (unsigned int i = 0; i < 6; ++i)
+            {
+                AssertD(texture->GetHeight() == texture->GetWidth());
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, glTextureFormat.internalFormat,
+                             texture->GetWidth(), texture->GetHeight(), 0, glTextureFormat.format, glTextureFormat.type, texture->GetData(i));
+            }
+            return;
     }
 }
-
-GLuint GetGlTextureAddressMode(TextureSampler::eAddressMode mode) {
-    switch (mode) {
-        case TextureSampler::eAddressMode::kClampToBorder:
-            return GL_CLAMP_TO_BORDER;
-        case TextureSampler::eAddressMode::kClampToEdge:
-            return GL_CLAMP_TO_EDGE;
-        case TextureSampler::eAddressMode::kRepeat:
-            return GL_REPEAT;
-    }
-}
-
-GLuint GetGlTextureFilter(TextureSampler::eFilter filter,
-                          TextureSampler::eFilter mipFilter) {
-    if (filter == TextureSampler::eFilter::kNearest &&
-        mipFilter == TextureSampler::eFilter::kNearest) {
-        return GL_NEAREST_MIPMAP_NEAREST;
-    } else if (filter == TextureSampler::eFilter::kLinear &&
-               mipFilter == TextureSampler::eFilter::kNearest) {
-        return GL_LINEAR_MIPMAP_NEAREST;
-    } else if (filter == TextureSampler::eFilter::kNearest &&
-               mipFilter == TextureSampler::eFilter::kLinear) {
-        return GL_NEAREST_MIPMAP_LINEAR;
-    } else {
-        return GL_LINEAR_MIPMAP_LINEAR;
-    }
-}
-}  // namespace SHV::OpenGl::SGPUTexture
+}  // namespace SHV::OpenGl::GPUTextureUtils
 
 OpenGl::GPUTexture::GPUTexture(std::weak_ptr<Texture> aTexture)
     : texture(aTexture) {
     if (auto sharedTexture = texture.lock()) {
         AssertD(sharedTexture != nullptr &&
                 sharedTexture->GetData() != nullptr);
+        textureTarget = GPUTextureUtils::GetGlTextureTarget(sharedTexture->GetTextureType());
 
         glGenTextures(1, &textureHandle);
-        glBindTexture(GL_TEXTURE_2D, textureHandle);
+        glBindTexture(textureTarget, textureHandle);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
-                        SGPUTexture::GetGlTextureAddressMode(
-                            sharedTexture->GetTextureSampler().addressModeU));
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
-                        SGPUTexture::GetGlTextureAddressMode(
-                            sharedTexture->GetTextureSampler().addressModeV));
+        GPUTextureUtils::SetupTextureSampler(*sharedTexture);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                        SGPUTexture::GetGlTextureFilter(
-                            sharedTexture->GetTextureSampler().minFilter,
-                            sharedTexture->GetTextureSampler().mipMinFilter));
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-                        SGPUTexture::GetGlTextureFilter(
-                            sharedTexture->GetTextureSampler().magFilter,
-                            sharedTexture->GetTextureSampler().mipMagFilter));
-
-        const SGPUTexture::GlTextureFormat glTextureFormat =
-            SGPUTexture::GetGlTextureFormat(sharedTexture->GetTextureFormat());
-
-        glTexImage2D(GL_TEXTURE_2D, 0, glTextureFormat.internalFormat,
-                     sharedTexture->GetWidth(), sharedTexture->GetHeight(), 0,
-                     glTextureFormat.format, glTextureFormat.type,
-                     sharedTexture->GetData());
+        SGPUTexture::GenerateGlTexture(sharedTexture);
 
         if (sharedTexture->GetMipmapUsage() == eMipmapsUsage::kGenerate) {
-            glGenerateMipmap(GL_TEXTURE_2D);
+            glGenerateMipmap(textureTarget);
         } else if (sharedTexture->GetMipmapUsage() ==
                    eMipmapsUsage::kLoadFromData) {
             throw Exception(
@@ -108,7 +66,7 @@ OpenGl::GPUTexture::~GPUTexture() { glDeleteTextures(1, &textureHandle); }
 
 void OpenGl::GPUTexture::Bind() {
     AssertD(textureHandle != 0);
-    glBindTexture(GL_TEXTURE_2D, textureHandle);
+    glBindTexture(textureTarget, textureHandle);
 }
 
-void OpenGl::GPUTexture::Unbind() { glBindTexture(GL_TEXTURE_2D, 0); }
+void OpenGl::GPUTexture::Unbind() { glBindTexture(textureTarget, 0); }

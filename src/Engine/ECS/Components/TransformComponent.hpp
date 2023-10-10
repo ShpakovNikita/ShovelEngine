@@ -9,7 +9,7 @@ struct TransformComponent {
     glm::mat4 matrix{1.0f};
     glm::vec3 translation;
     glm::vec3 scale{1.0f};
-    glm::quat rotation;
+    glm::quat rotation = glm::angleAxis(0.0f, glm::vec3(0.0f, 0.0f, 0.0f));
 
     glm::mat4 parentWorldMatrix{1.0f};
 

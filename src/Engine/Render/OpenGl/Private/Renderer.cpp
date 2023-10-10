@@ -24,6 +24,7 @@
 #include "Engine/Render/OpenGl/ECS/Components/RenderComponent.hpp"
 #include "Engine/Render/OpenGl/ECS/RenderBatcher.hpp"
 #include "Engine/Render/OpenGl/Model/GPUTexture.hpp"
+#include "Engine/Render/OpenGl/Model/GPUTextureUtils.hpp"
 #include "Engine/Render/OpenGl/ShaderCache.hpp"
 #include "Engine/Render/ECS/Systems/RenderSystem.hpp"
 
@@ -122,9 +123,43 @@ void SHV::OpenGl::Renderer::Draw(const Scene& scene) {
     }
 }
 
-std::shared_ptr<SHV::Texture> SHV::OpenGl::Renderer::Draw(const SHV::Scene& /*scene*/,
-                                                         const SHV::Texture& /*renderTargetPrototype*/) {
-    throw SHV::Exception("Not implemented!");
+std::shared_ptr<SHV::Texture> SHV::OpenGl::Renderer::Draw(const SHV::Scene& scene,
+                                                         const SHV::Texture& renderTargetPrototype) {
+    ZoneNamedN(
+        __tracy, "OpenGL Render Draw to Render Target",
+        static_cast<bool>(kActiveProfilerSystems & ProfilerSystems::Rendering));
+
+    GLuint texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    const GlTextureFormat textureFormat = GPUTextureUtils::GetGlTextureFormat(renderTargetPrototype.GetTextureFormat());
+
+    glTexImage2D(GL_TEXTURE_2D, 0, textureFormat.internalFormat, renderTargetPrototype.GetWidth(), renderTargetPrototype.GetHeight(), 0, textureFormat.format, textureFormat.type, NULL);
+    GPUTextureUtils::SetupTextureSampler(renderTargetPrototype);
+
+    GLuint fbo;
+    glGenFramebuffers(1, &fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        throw SHV::Exception("Framebuffer is not complete!");
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    glViewport(0, 0, renderTargetPrototype.GetWidth(), renderTargetPrototype.GetHeight());
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    Draw(scene);
+
+    std::shared_ptr<SHV::Texture> destinationTexture = GPUTextureUtils::MakeTextureFromFrameBuffer(fbo, renderTargetPrototype);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDeleteFramebuffers(1, &fbo);
+    glDeleteTextures(1, &texture);
+
+    return destinationTexture;
 }
 
 void SHV::OpenGl::Renderer::BeginFrame() {

@@ -27,26 +27,6 @@ void MovementSystem::Process(float dt) {
 
         if (inputComponent.input.IsKeyPressed(eKey::kRMB) &&
             inputComponent.normalizedMotion.length() != 0) {
-            /*
-            auto transformEulerAngles =
-                eulerAngles(transformComponent.rotation);
-
-            transformEulerAngles.x += inputComponent.normalizedMotion.y *
-                                      cameraComponent.sensitivity;  // pitch
-            transformEulerAngles.y -= inputComponent.normalizedMotion.x *
-                                      cameraComponent.sensitivity;  // yaw
-
-            if (transformEulerAngles.x > glm::radians(89.0f)) {
-                transformEulerAngles.x = glm::radians(89.0f);
-            }
-
-            if (transformEulerAngles.x < glm::radians(-89.0f)) {
-                transformEulerAngles.x = glm::radians(-89.0f);
-            }
-
-            transformComponent.rotation = glm::quat(transformEulerAngles);
-             */
-
             auto& rotation = cameraComponent.cameraRotation;
 
             rotation.x += inputComponent.normalizedMotion.y *
@@ -63,9 +43,7 @@ void MovementSystem::Process(float dt) {
             }
         }
 
-        const glm::vec3 cameraDirection = glm::normalize(
-            glm::quat(
-                cameraComponent.cameraRotation) /*transformComponent.rotation*/
+        const glm::vec3 cameraDirection = glm::normalize(glm::quat(cameraComponent.cameraRotation)
             * cameraComponent.cameraFront);
 
         if (inputComponent.input.IsKeyPressed(eKey::kW)) {

@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include "Metal/MTLPixelFormat.hpp"
+
 namespace MTL {
 class RenderPipelineState;
 }
@@ -11,6 +13,7 @@ namespace Metal {
 
 struct RenderPipelineParams {
     bool enableDepthTest = true;
+    MTL::PixelFormat pixelFormat = MTL::PixelFormat::PixelFormatRGBA8Unorm;
 };
 
 class LogicalDevice;

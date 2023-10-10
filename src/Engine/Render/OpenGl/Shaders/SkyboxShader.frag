@@ -7,10 +7,11 @@ struct Vertex {
 
 in Vertex vertex;
 
-uniform sampler2D skyboxMap;
+uniform samplerCube skyboxMap;
 
 void main()
 {
-    vec4 baseColor = texture(skyboxMap, vertex.texCoords.xy);
+    vec3 direction = normalize(vertex.texCoords.xyz);
+    vec4 baseColor = texture(skyboxMap, direction);
     FragColor = baseColor;
 }

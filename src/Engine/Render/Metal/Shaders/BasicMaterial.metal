@@ -7,7 +7,7 @@ struct VertexOut {
     float4 pos [[position]];
 };
 
-vertex VertexOut basic_vertex(const device BasicVertexLayout *vertexArray [[buffer(0)]], const device UniformsData &uniformsData [[buffer(1)]], unsigned int vid [[vertex_id]]) {
+vertex VertexOut BasicVertex(const device BasicVertexLayout *vertexArray [[buffer(0)]], const device UniformsData &uniformsData [[buffer(1)]], unsigned int vid [[vertex_id]]) {
   BasicVertexLayout in = vertexArray[vid];
 
   VertexOut out;
@@ -18,7 +18,7 @@ vertex VertexOut basic_vertex(const device BasicVertexLayout *vertexArray [[buff
   return out;
 }
 
-fragment float4 basic_fragment(VertexOut interpolated [[stage_in]]) {
+fragment float4 BasicFragment(VertexOut interpolated [[stage_in]]) {
     return interpolated.color;
 }
 

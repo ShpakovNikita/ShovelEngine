@@ -26,16 +26,16 @@ std::shared_ptr<Metal::RenderPipeline>
 Metal::RenderPipelineCache::CreateRenderPipeline(eMaterialShader shader) {
     switch (shader) {
         case eMaterialShader::kPbrShader:
-            return std::make_shared<RenderPipeline>(logicalDevice, "pbr_vertex",
-                                                    "pbr_fragment");
+            return std::make_shared<RenderPipeline>(logicalDevice, "PbrVertex",
+                                                    "PbrFragment");
         case eMaterialShader::kBasicShader:
             return std::make_shared<RenderPipeline>(
-                logicalDevice, "basic_vertex", "basic_fragment");
+                logicalDevice, "BasicVertex", "BasicFragment");
         case eMaterialShader::kSkyboxShader:
             return std::make_shared<RenderPipeline>(
-                logicalDevice, "skybox_vertex", "skybox_fragment");
+                logicalDevice, "SkyboxVertex", "SkyboxFragment");
         case eMaterialShader::kSkyboxEquirectangularShader:
             return std::make_shared<RenderPipeline>(
-                logicalDevice, "skybox_vertex", "skybox_equirectangular_fragment");
+                logicalDevice, "SkyboxVertex", "SkyboxEquirectangularFragment");
     }
 }

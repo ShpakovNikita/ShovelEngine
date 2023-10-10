@@ -130,6 +130,10 @@ Texture::Texture(const std::string& aTexturePath) : texturePath(aTexturePath) {
     const std::string filePath =
         Engine::Get().GetFileSystem().GetPath(texturePath);
 
+    // Note, that while this is true for open gl and metal, with introduction of
+    // DirectX this thing needs to be revised
+    stbi_set_flip_vertically_on_load(1);
+
     void* stbData;
     if (stbi_is_hdr(filePath.c_str())) {
         stbData = stbi_loadf(filePath.c_str(), &w, &h, &nrChannels, 0);
@@ -152,6 +156,7 @@ Texture::Texture(const std::string& aTexturePath) : texturePath(aTexturePath) {
     data[0] = STexture::GetConvertedData(textureFormat, height, width,
                                       channelsCount, bytesPerChannel, stbData);
     stbi_image_free(stbData);
+    stbi_set_flip_vertically_on_load(0);
 }
 
 Texture::~Texture() {

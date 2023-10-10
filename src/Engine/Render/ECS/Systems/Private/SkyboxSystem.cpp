@@ -15,6 +15,10 @@
 #include "Engine/ECS/Components/TransformComponent.hpp"
 #include "Engine/ECS/Components/CameraComponent.hpp"
 
+#include "Engine/ECS/Systems/CameraSystem.hpp"
+
+#include "Engine/ECS/Utils/AspectRatioDelegate/ConstantAspectRatioDelegate.hpp"
+
 #include <vector>
 
 using namespace SHV;
@@ -22,12 +26,14 @@ using namespace SHV;
 namespace SSkyboxSystem {
     std::unique_ptr<Scene> CreateSkyboxScene(std::shared_ptr<Texture> equirectangularTexture) {
         auto scene = std::make_unique<Scene>();
+        scene->AddSystem<CameraSystem>(std::make_unique<ConstantAspectRatioDelegate>(1.0f));
 
         auto& registry = scene->GetRegistry();
         auto camera = registry.create();
 
         registry.emplace<TransformComponent>(camera);
-        registry.emplace<CameraComponent>(camera);
+        auto& cameraComponent = registry.emplace<CameraComponent>(camera);
+        cameraComponent.cameraFOV = glm::radians(90.0f);
 
         auto cubeEntity = ObjectCreationUtils::CreateCube(scene->GetRegistry(), 2.0f);
 
@@ -88,27 +94,25 @@ std::shared_ptr<Texture> SkyboxSystem::CreateCubeMapTextureFromEquirectangularPr
 
     // Trigger creation of api specific render batches
     scene->Process(0.0);
-
+    
     static std::vector<glm::vec3> orientations = {
-        {1.0, 0.0, 0.0}, {-1.0, 0.0, 0.0},
-        {0.0, 1.0, 0.0}, {0.0, -1.0, 0.0},
-        {0.0, 0.0, 1.0}, {0.0, 0.0, -1.0},
+        {0.0, 0.0, 0.0}, {0.0, glm::radians(180.0), 0.0},
+        {-glm::radians(90.0), glm::radians(90.0), 0.0}, {glm::radians(90.0), glm::radians(90.0), 0.0},
+        {0.0, glm::radians(90.0), 0.0}, {0.0, -glm::radians(90.0), 0.0},
     };
 
     std::vector<std::shared_ptr<Texture>> sides = {};
     sides.reserve(orientations.capacity());
-    uint32_t targetSize = equirectangularTexture->GetHeight() / 2;
+    uint32_t targetSize = equirectangularTexture->GetHeight();
 
     for (const glm::vec3& orientation: orientations) {
         auto texture = std::make_shared<Texture>(nullptr, targetSize, targetSize,
                                                   4, 1);
         auto cameraEntity = scene->GetEntityWithActiveCamera();
-        const auto& cameraComponent =
+        auto& cameraComponent =
             scene->GetRegistry().get<SHV::CameraComponent>(cameraEntity);
-        auto& cameraTransform =
-            scene->GetRegistry().get<SHV::TransformComponent>(cameraEntity);
-        cameraTransform.rotation = glm::quatLookAt(orientation, cameraComponent.cameraUp);
-
+        
+        cameraComponent.cameraRotation = orientation;
         texture = renderer.Draw(*scene, *texture);
         sides.push_back(texture);
     }

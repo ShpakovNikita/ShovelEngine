@@ -4,8 +4,6 @@
 
 #include "Engine/Common/Exception.hpp"
 
-#include "Metal/Metal.hpp"
-
 using namespace SHV;
 
 MTL::PixelFormat Metal::GPUTextureUtils::GetMTLTextureFormat(eTextureFormat textureFormat) {
